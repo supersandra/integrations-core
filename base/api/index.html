@@ -363,7 +363,7 @@ AgentCheck.check()                          # no more instance argument for chec
         <span class=n>models_config</span> <span class=o>=</span> <span class=n>models_config</span> <span class=ow>or</span> <span class=p>{}</span>
         <span class=n>typos</span> <span class=o>=</span> <span class=nb>set</span><span class=p>()</span>  <span class=c1># type: Set[str]</span>
 
-        <span class=n>known_options</span> <span class=o>=</span> <span class=nb>set</span><span class=p>([</span><span class=n>k</span> <span class=k>for</span> <span class=n>k</span><span class=p>,</span> <span class=n>_</span> <span class=ow>in</span> <span class=n>models_config</span><span class=p>])</span>  <span class=c1># type: Set[str]</span>
+        <span class=n>known_options</span> <span class=o>=</span> <span class=p>{</span><span class=n>k</span> <span class=k>for</span> <span class=n>k</span><span class=p>,</span> <span class=n>_</span> <span class=ow>in</span> <span class=n>models_config</span><span class=p>}</span>  <span class=c1># type: Set[str]</span>
 
         <span class=k>if</span> <span class=ow>not</span> <span class=n>PY2</span><span class=p>:</span>
 

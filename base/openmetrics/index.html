@@ -291,7 +291,9 @@
                             <span class=p>)</span>
 
                     <span class=bp>self</span><span class=o>.</span><span class=n>exclude_metrics_by_labels</span><span class=p>[</span><span class=n>label</span><span class=p>]</span> <span class=o>=</span> <span class=p>(</span>
-                        <span class=k>lambda</span> <span class=n>label_value</span><span class=p>,</span> <span class=n>pattern</span><span class=o>=</span><span class=n>re</span><span class=o>.</span><span class=n>compile</span><span class=p>(</span><span class=s1>&#39;|&#39;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>values</span><span class=p>)):</span> <span class=n>pattern</span><span class=o>.</span><span class=n>search</span><span class=p>(</span><span class=n>label_value</span><span class=p>)</span>
+                        <span class=k>lambda</span> <span class=n>label_value</span><span class=p>,</span> <span class=n>pattern</span><span class=o>=</span><span class=n>re</span><span class=o>.</span><span class=n>compile</span><span class=p>(</span><span class=s1>&#39;|&#39;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>values</span><span class=p>)):</span> <span class=n>pattern</span><span class=o>.</span><span class=n>search</span><span class=p>(</span>  <span class=c1># noqa: B008</span>
+                            <span class=n>label_value</span>
+                        <span class=p>)</span>  <span class=c1># noqa: B008, E501</span>
                         <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span>
                     <span class=p>)</span>
                 <span class=k>else</span><span class=p>:</span>
@@ -672,7 +674,9 @@
                         <span class=p>)</span>
 
                 <span class=bp>self</span><span class=o>.</span><span class=n>exclude_metrics_by_labels</span><span class=p>[</span><span class=n>label</span><span class=p>]</span> <span class=o>=</span> <span class=p>(</span>
-                    <span class=k>lambda</span> <span class=n>label_value</span><span class=p>,</span> <span class=n>pattern</span><span class=o>=</span><span class=n>re</span><span class=o>.</span><span class=n>compile</span><span class=p>(</span><span class=s1>&#39;|&#39;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>values</span><span class=p>)):</span> <span class=n>pattern</span><span class=o>.</span><span class=n>search</span><span class=p>(</span><span class=n>label_value</span><span class=p>)</span>
+                    <span class=k>lambda</span> <span class=n>label_value</span><span class=p>,</span> <span class=n>pattern</span><span class=o>=</span><span class=n>re</span><span class=o>.</span><span class=n>compile</span><span class=p>(</span><span class=s1>&#39;|&#39;</span><span class=o>.</span><span class=n>join</span><span class=p>(</span><span class=n>values</span><span class=p>)):</span> <span class=n>pattern</span><span class=o>.</span><span class=n>search</span><span class=p>(</span>  <span class=c1># noqa: B008</span>
+                        <span class=n>label_value</span>
+                    <span class=p>)</span>  <span class=c1># noqa: B008, E501</span>
                     <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span>
                 <span class=p>)</span>
             <span class=k>else</span><span class=p>:</span>
