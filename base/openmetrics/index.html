@@ -341,14 +341,17 @@
 
         <span class=bp>self</span><span class=o>.</span><span class=n>http</span> <span class=o>=</span> <span class=n>RequestsWrapper</span><span class=p>(</span><span class=n>config</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=o>.</span><span class=n>HTTP_CONFIG_REMAPPER</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=o>.</span><span class=n>log</span><span class=p>)</span>
 
-        <span class=c1># Decide how strictly we will adhere to the latest version of the specification</span>
-        <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_latest_spec&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)):</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families_strict</span>
-            <span class=c1># https://github.com/prometheus/client_python/blob/v0.9.0/prometheus_client/openmetrics/exposition.py#L7</span>
-            <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;application/openmetrics-text; version=0.0.1; charset=utf-8&#39;</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>_content_type</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>_use_latest_spec</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_latest_spec&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>))</span>
+        <span class=c1># Accept headers are taken from:</span>
+        <span class=c1># https://github.com/prometheus/prometheus/blob/v2.43.0/scrape/scrape.go#L787</span>
+        <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>_use_latest_spec</span><span class=p>:</span>
+            <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;application/openmetrics-text;version=1.0.0,application/openmetrics-text;version=0.0.1&#39;</span>
         <span class=k>else</span><span class=p>:</span>
-            <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families</span>
-            <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;text/plain&#39;</span>
+            <span class=n>accept_header</span> <span class=o>=</span> <span class=p>(</span>
+                <span class=s1>&#39;application/openmetrics-text;version=1.0.0,application/openmetrics-text;version=0.0.1;q=0.75,&#39;</span>
+                <span class=s1>&#39;text/plain;version=0.0.4;q=0.5,*/*;q=0.1&#39;</span>
+            <span class=p>)</span>
 
         <span class=c1># Request the appropriate exposition format</span>
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;Accept&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=s1>&#39;*/*&#39;</span><span class=p>:</span>
@@ -403,6 +406,11 @@
         <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>raw_line_filter</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
             <span class=n>line_streamer</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>filter_connection_lines</span><span class=p>(</span><span class=n>line_streamer</span><span class=p>)</span>
 
+        <span class=c1># Since we determine `self.parse_metric_families` dynamically from the response and that&#39;s done as a</span>
+        <span class=c1># side effect inside the `line_streamer` generator, we need to consume the first line in order to</span>
+        <span class=c1># trigger that side effect.</span>
+        <span class=n>line_streamer</span> <span class=o>=</span> <span class=n>chain</span><span class=p>([</span><span class=nb>next</span><span class=p>(</span><span class=n>line_streamer</span><span class=p>)],</span> <span class=n>line_streamer</span><span class=p>)</span>
+
         <span class=k>for</span> <span class=n>metric</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span><span class=p>(</span><span class=n>line_streamer</span><span class=p>):</span>
             <span class=bp>self</span><span class=o>.</span><span class=n>submit_telemetry_number_of_total_metric_samples</span><span class=p>(</span><span class=n>metric</span><span class=p>)</span>
 
@@ -412,6 +420,19 @@
                 <span class=n>metric</span><span class=o>.</span><span class=n>name</span> <span class=o>=</span> <span class=n>metric</span><span class=o>.</span><span class=n>name</span><span class=p>[</span><span class=nb>len</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>raw_metric_prefix</span><span class=p>)</span> <span class=p>:]</span>
 
             <span class=k>yield</span> <span class=n>metric</span>
+
+    <span class=nd>@property</span>
+    <span class=k>def</span> <span class=nf>parse_metric_families</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+        <span class=n>media_type</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_content_type</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;;&#39;</span><span class=p>)[</span><span class=mi>0</span><span class=p>]</span>
+        <span class=c1># Setting `use_latest_spec` forces the use of the OpenMetrics format, otherwise</span>
+        <span class=c1># the format will be chosen based on the media type specified in the response&#39;s content-header.</span>
+        <span class=c1># The selection is based on what Prometheus does:</span>
+        <span class=c1># https://github.com/prometheus/prometheus/blob/v2.43.0/model/textparse/interface.go#L83-L90</span>
+        <span class=k>return</span> <span class=p>(</span>
+            <span class=n>parse_openmetrics</span>
+            <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>_use_latest_spec</span> <span class=ow>or</span> <span class=n>media_type</span> <span class=o>==</span> <span class=s1>&#39;application/openmetrics-text&#39;</span>
+            <span class=k>else</span> <span class=n>parse_prometheus</span>
+        <span class=p>)</span>
 
     <span class=k>def</span> <span class=nf>generate_sample_data</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>metric</span><span class=p>):</span>
         <span class=sd>&quot;&quot;&quot;</span>
@@ -465,6 +486,8 @@
 <span class=sd>        &quot;&quot;&quot;</span>
 
         <span class=k>with</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_connection</span><span class=p>()</span> <span class=k>as</span> <span class=n>connection</span><span class=p>:</span>
+            <span class=c1># Media type will be used to select parser dynamically</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>_content_type</span> <span class=o>=</span> <span class=n>connection</span><span class=o>.</span><span class=n>headers</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;Content-Type&#39;</span><span class=p>,</span> <span class=s1>&#39;&#39;</span><span class=p>)</span>
             <span class=k>for</span> <span class=n>line</span> <span class=ow>in</span> <span class=n>connection</span><span class=o>.</span><span class=n>iter_lines</span><span class=p>(</span><span class=n>decode_unicode</span><span class=o>=</span><span class=kc>True</span><span class=p>):</span>
                 <span class=k>yield</span> <span class=n>line</span>
 
@@ -504,6 +527,7 @@
                     <span class=n>response</span><span class=o>.</span><span class=n>encoding</span> <span class=o>=</span> <span class=s1>&#39;utf-8&#39;</span>
 
                 <span class=bp>self</span><span class=o>.</span><span class=n>submit_telemetry_endpoint_response_size</span><span class=p>(</span><span class=n>response</span><span class=p>)</span>
+
                 <span class=k>return</span> <span class=n>response</span>
 
     <span class=k>def</span> <span class=nf>send_request</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>):</span>
@@ -724,14 +748,17 @@
 
     <span class=bp>self</span><span class=o>.</span><span class=n>http</span> <span class=o>=</span> <span class=n>RequestsWrapper</span><span class=p>(</span><span class=n>config</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=o>.</span><span class=n>HTTP_CONFIG_REMAPPER</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=o>.</span><span class=n>log</span><span class=p>)</span>
 
-    <span class=c1># Decide how strictly we will adhere to the latest version of the specification</span>
-    <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_latest_spec&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)):</span>
-        <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families_strict</span>
-        <span class=c1># https://github.com/prometheus/client_python/blob/v0.9.0/prometheus_client/openmetrics/exposition.py#L7</span>
-        <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;application/openmetrics-text; version=0.0.1; charset=utf-8&#39;</span>
+    <span class=bp>self</span><span class=o>.</span><span class=n>_content_type</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
+    <span class=bp>self</span><span class=o>.</span><span class=n>_use_latest_spec</span> <span class=o>=</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=n>config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;use_latest_spec&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>))</span>
+    <span class=c1># Accept headers are taken from:</span>
+    <span class=c1># https://github.com/prometheus/prometheus/blob/v2.43.0/scrape/scrape.go#L787</span>
+    <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>_use_latest_spec</span><span class=p>:</span>
+        <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;application/openmetrics-text;version=1.0.0,application/openmetrics-text;version=0.0.1&#39;</span>
     <span class=k>else</span><span class=p>:</span>
-        <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span> <span class=o>=</span> <span class=n>parse_metric_families</span>
-        <span class=n>accept_header</span> <span class=o>=</span> <span class=s1>&#39;text/plain&#39;</span>
+        <span class=n>accept_header</span> <span class=o>=</span> <span class=p>(</span>
+            <span class=s1>&#39;application/openmetrics-text;version=1.0.0,application/openmetrics-text;version=0.0.1;q=0.75,&#39;</span>
+            <span class=s1>&#39;text/plain;version=0.0.4;q=0.5,*/*;q=0.1&#39;</span>
+        <span class=p>)</span>
 
     <span class=c1># Request the appropriate exposition format</span>
     <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>http</span><span class=o>.</span><span class=n>options</span><span class=p>[</span><span class=s1>&#39;headers&#39;</span><span class=p>]</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;Accept&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=s1>&#39;*/*&#39;</span><span class=p>:</span>
@@ -840,6 +867,7 @@
                 <span class=n>response</span><span class=o>.</span><span class=n>encoding</span> <span class=o>=</span> <span class=s1>&#39;utf-8&#39;</span>
 
             <span class=bp>self</span><span class=o>.</span><span class=n>submit_telemetry_endpoint_response_size</span><span class=p>(</span><span class=n>response</span><span class=p>)</span>
+
             <span class=k>return</span> <span class=n>response</span>
 </code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h4 id=datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.parse_metrics class="doc doc-heading"> <code class="highlight language-python"><span class=n>parse_metrics</span><span class=p>(</span><span class=bp>self</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.parse_metrics class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Get the line streamer and yield processed metrics.</p> <details class=quote> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/v2/scraper.py</code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>parse_metrics</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
     <span class=sd>&quot;&quot;&quot;</span>
@@ -849,6 +877,11 @@
     <span class=n>line_streamer</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>stream_connection_lines</span><span class=p>()</span>
     <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>raw_line_filter</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
         <span class=n>line_streamer</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>filter_connection_lines</span><span class=p>(</span><span class=n>line_streamer</span><span class=p>)</span>
+
+    <span class=c1># Since we determine `self.parse_metric_families` dynamically from the response and that&#39;s done as a</span>
+    <span class=c1># side effect inside the `line_streamer` generator, we need to consume the first line in order to</span>
+    <span class=c1># trigger that side effect.</span>
+    <span class=n>line_streamer</span> <span class=o>=</span> <span class=n>chain</span><span class=p>([</span><span class=nb>next</span><span class=p>(</span><span class=n>line_streamer</span><span class=p>)],</span> <span class=n>line_streamer</span><span class=p>)</span>
 
     <span class=k>for</span> <span class=n>metric</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>parse_metric_families</span><span class=p>(</span><span class=n>line_streamer</span><span class=p>):</span>
         <span class=bp>self</span><span class=o>.</span><span class=n>submit_telemetry_number_of_total_metric_samples</span><span class=p>(</span><span class=n>metric</span><span class=p>)</span>
@@ -885,6 +918,8 @@
 <span class=sd>    &quot;&quot;&quot;</span>
 
     <span class=k>with</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_connection</span><span class=p>()</span> <span class=k>as</span> <span class=n>connection</span><span class=p>:</span>
+        <span class=c1># Media type will be used to select parser dynamically</span>
+        <span class=bp>self</span><span class=o>.</span><span class=n>_content_type</span> <span class=o>=</span> <span class=n>connection</span><span class=o>.</span><span class=n>headers</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;Content-Type&#39;</span><span class=p>,</span> <span class=s1>&#39;&#39;</span><span class=p>)</span>
         <span class=k>for</span> <span class=n>line</span> <span class=ow>in</span> <span class=n>connection</span><span class=o>.</span><span class=n>iter_lines</span><span class=p>(</span><span class=n>decode_unicode</span><span class=o>=</span><span class=kc>True</span><span class=p>):</span>
             <span class=k>yield</span> <span class=n>line</span>
 </code></pre></div> </details> </div> </div> <div class="doc doc-object doc-method"> <h4 id=datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.submit_health_check class="doc doc-heading"> <code class="highlight language-python"><span class=n>submit_health_check</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>status</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.openmetrics.v2.scraper.OpenMetricsScraper.submit_health_check class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>If health service check is enabled, send an <code>openmetrics.health</code> service check.</p> <details class=quote> <summary>Source code in <code>datadog_checks/base/checks/openmetrics/v2/scraper.py</code></summary> <div class=highlight><pre><span></span><code><span class=k>def</span> <span class=nf>submit_health_check</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>status</span><span class=p>,</span> <span class=o>**</span><span class=n>kwargs</span><span class=p>):</span>
