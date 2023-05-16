@@ -162,6 +162,7 @@ PACKAGE_REPO_OVERRIDES = {
     'paramiko': 'https://github.com/paramiko/paramiko',
     'protobuf': 'https://github.com/protocolbuffers/protobuf',
     'psycopg2-binary': 'https://github.com/psycopg/psycopg2',
+    'psycopg': 'https://github.com/psycopg/psycopg',
     'pycryptodomex': 'https://github.com/Legrandin/pycryptodome',
     'redis': 'https://github.com/redis/redis-py',
     'requests': 'https://github.com/psf/requests',
