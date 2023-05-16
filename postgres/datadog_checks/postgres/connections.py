@@ -6,7 +6,17 @@ import inspect
 import threading
 from collections import namedtuple
 
-import psycopg2
+try:
+    import psycopg
+    import psycopg.extensions as psycopg_extensions
+except ImportError:
+    psycopg = None
+
+try:
+    import psycopg2
+    import psycopg2.extensions as psycopg2_extensions
+except ImportError:
+    psycopg2 = None
 
 ConnectionWithTTL = namedtuple("ConnectionWithTTL", "connection deadline")
 
@@ -56,13 +66,24 @@ class MultiDatabaseConnectionPool(object):
         with self._mu:
             conn = self._conns.pop(dbname, ConnectionWithTTL(None, None))
             db = conn.connection
+
             if db is None or db.closed:
                 self._stats.connection_opened += 1
-                db = self.connect_fn(dbname)
+                if psycopg2 is not None:
+                    db = self.connect_fn(dbname, psycopg2)
+                elif psycopg is not None:
+                    db = self.connect_fn(dbname, psycopg)
+                else:
+                    raise ImportError("Neither psycopg nor psycopg2 library is available.")
 
-            if db.status != psycopg2.extensions.STATUS_READY:
-                # Some transaction went wrong and the connection is in an unhealthy state. Let's fix that
-                db.rollback()
+            if psycopg2 is not None and isinstance(db.status, psycopg2_extensions.Status):
+                if db.status != psycopg2_extensions.STATUS_READY:
+                    # Some transaction went wrong and the connection is in an unhealthy state. Let's fix that
+                    db.rollback()
+            elif psycopg is not None and isinstance(db.status, psycopg_extensions.Status):
+                if db.status != psycopg_extensions.STATUS_READY:
+                    # Some transaction went wrong and the connection is in an unhealthy state. Let's fix that
+                    db.rollback()
 
             deadline = datetime.datetime.now() + datetime.timedelta(milliseconds=ttl_ms)
             self._conns[dbname] = ConnectionWithTTL(db, deadline)
