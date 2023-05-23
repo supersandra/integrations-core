@@ -559,6 +559,13 @@ AgentCheck.check()                          # no more instance argument for chec
 
         <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_event_platform_event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>raw_event</span><span class=p>),</span> <span class=s2>&quot;dbm-activity&quot;</span><span class=p>)</span>
 
+    <span class=k>def</span> <span class=nf>database_monitoring_metadata</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>raw_event</span><span class=p>):</span>
+        <span class=c1># type: (str) -&gt; None</span>
+        <span class=k>if</span> <span class=n>raw_event</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
+            <span class=k>return</span>
+
+        <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_event_platform_event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>raw_event</span><span class=p>),</span> <span class=s2>&quot;dbm-metadata&quot;</span><span class=p>)</span>
+
     <span class=k>def</span> <span class=nf>should_send_metric</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>metric_name</span><span class=p>):</span>
         <span class=k>return</span> <span class=ow>not</span> <span class=bp>self</span><span class=o>.</span><span class=n>_metric_excluded</span><span class=p>(</span><span class=n>metric_name</span><span class=p>)</span> <span class=ow>and</span> <span class=bp>self</span><span class=o>.</span><span class=n>_metric_included</span><span class=p>(</span><span class=n>metric_name</span><span class=p>)</span>
 
