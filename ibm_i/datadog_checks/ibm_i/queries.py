@@ -287,6 +287,31 @@ def get_message_queue_info(timeout, sev, message_queue_info):
     }
 
 
+def get_lockwait_info(timeout):
+    return {
+        'name': 'lockwait',
+        'query': {
+            'text': (
+                "SELECT JOB_NAME,JOB_TYPE,JOB_STATUS,SUBSYSTEM,"
+                "COALESCE(DATABASE_LOCK_WAIT_TIME, 0) AS DATABASE_LOCK_WAIT_TIME,"
+                "COALESCE(NON_DATABASE_LOCK_WAIT_TIME, 0) AS NON_DATABASE_LOCK_WAIT_TIME,"
+                "COALESCE(INTERNAL_MACHINE_LOCK_WAIT_TIME, 0) AS INTERNAL_MACHINE_LOCK_WAIT_TIME "
+                "FROM TABLE(QSYS2.ACTIVE_JOB_INFO(JOB_NAME_FILTER => '*ALL')) A"
+            ),
+            'timeout': timeout,
+        },
+        'columns': [
+            {'name': 'job_name', 'type': 'tag'},
+            {'name': 'job_type', 'type': 'tag'}, 
+            {'name': 'job_status', 'type': 'tag'},
+            {'name': 'subsystem', 'type': 'tag'},
+            {'name': 'ibm_i.database.lock.wait_time', 'type': 'gauge'},
+            {'name': 'ibm_i.non_database.lock.wait_time', 'type': 'gauge'},
+            {'name': 'ibm_i.internal_machine.lock.wait_time', 'type': 'gauge'},
+        ],
+    }
+
+
 def query_map(config: InstanceConfig):
     """Build a query map from query names to queries."""
 
@@ -301,4 +326,5 @@ def query_map(config: InstanceConfig):
         "message_queue_info": get_message_queue_info(
             config.system_mq_query_timeout, config.severity_threshold, config.message_queue_info
         ),
+        "lockwait_info": get_lockwait_info(config.query_timeout),
     }
