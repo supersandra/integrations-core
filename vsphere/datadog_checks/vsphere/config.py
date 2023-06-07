@@ -1,12 +1,16 @@
+# (C) Datadog, Inc. 2020-present
+# All rights reserved
+# Licensed under a 3-clause BSD style license (see LICENSE)
+
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List  # noqa: F401
 
 from pyVmomi import vim
 from six import iteritems, string_types
 
 from datadog_checks.base import ConfigurationError, is_affirmative
-from datadog_checks.base.log import CheckLoggingAdapter
-from datadog_checks.base.types import InitConfigType
+from datadog_checks.base.log import CheckLoggingAdapter  # noqa: F401
+from datadog_checks.base.types import InitConfigType  # noqa: F401
 from datadog_checks.vsphere.constants import (
     ALL_RESOURCES_WITH_METRICS,
     ALLOWED_FILTER_PROPERTIES,
@@ -24,8 +28,13 @@ from datadog_checks.vsphere.constants import (
     MOR_TYPE_AS_STRING,
 )
 from datadog_checks.vsphere.metrics import RESOURCES_WITH_HISTORICAL_METRICS, RESOURCES_WITH_REALTIME_METRICS
-from datadog_checks.vsphere.resource_filters import ResourceFilter, create_resource_filter
-from datadog_checks.vsphere.types import InstanceConfig, MetricFilterConfig, MetricFilters, ResourceFilterConfig
+from datadog_checks.vsphere.resource_filters import ResourceFilter, create_resource_filter  # noqa: F401
+from datadog_checks.vsphere.types import (  # noqa: F401
+    InstanceConfig,
+    MetricFilterConfig,
+    MetricFilters,
+    ResourceFilterConfig,
+)
 
 
 class VSphereConfig(object):

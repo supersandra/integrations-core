@@ -1,5 +1,95 @@
 # CHANGELOG - Datadog Checks Dev
 
+## 19.4.0 / 2023-06-06
+
+* [Added] Update minimum base check version for templates. See [#14643](https://github.com/DataDog/integrations-core/pull/14643).
+* [Fixed] Keep pydantic version synced. See [#14656](https://github.com/DataDog/integrations-core/pull/14656).
+* [Fixed] Fix `generate-profile-from-mibs`. See [#14676](https://github.com/DataDog/integrations-core/pull/14676).
+
+## 19.3.1 / 2023-05-26
+
+* [Fixed] Update dependencies. See [#14594](https://github.com/DataDog/integrations-core/pull/14594).
+
+## 19.3.0 / 2023-05-17
+
+* [Added] Add `token` and `alert` as valid metric units. See [#14575](https://github.com/DataDog/integrations-core/pull/14575).
+* [Added] Add an ignore_connection_errors option to the openmetrics check. See [#14504](https://github.com/DataDog/integrations-core/pull/14504).
+* [Fixed] Fix format-style command when test custom_integration for tox. See [#14547](https://github.com/DataDog/integrations-core/pull/14547). Thanks [FeruBaco](https://github.com/FeruBaco).
+* [Fixed] Remove unnecesary commas after type definition. See [#14529](https://github.com/DataDog/integrations-core/pull/14529). Thanks [FeruBaco](https://github.com/FeruBaco).
+* [Fixed] Capture stderr from docker compose to improve debugging experience. See [#13949](https://github.com/DataDog/integrations-core/pull/13949).
+
+## 19.2.0 / 2023-04-27
+
+* [Added] Remove Azure Pipelines from validation. See [#14475](https://github.com/DataDog/integrations-core/pull/14475).
+* [Fixed] Deprecate `use_latest_spec` option. See [#14446](https://github.com/DataDog/integrations-core/pull/14446).
+* [Fixed] Drop some kafka_consumer old dependencies from the `licenses` command. See [#14244](https://github.com/DataDog/integrations-core/pull/14244).
+
+## 19.1.0 / 2023-04-20
+
+* [Added] Introduce initial entry in CHANGELOG during ddev create. See [#14148](https://github.com/DataDog/integrations-core/pull/14148).
+* [Fixed] Limit the version of `virtualenv` to continue testing Python 2. See [#14431](https://github.com/DataDog/integrations-core/pull/14431).
+* [Fixed] Make license validation deterministic wrt dependency specification. See [#14354](https://github.com/DataDog/integrations-core/pull/14354).
+
+## 19.0.0 / 2023-04-11
+
+* [Changed] Replace flake8 and isort with Ruff. See [#14212](https://github.com/DataDog/integrations-core/pull/14212).
+
+## 18.1.0 / 2023-03-31
+
+* [Added] Get more insight into Agent E2E communication errors. See [#14259](https://github.com/DataDog/integrations-core/pull/14259).
+* [Added] Support GitHub Actions for testing. See [#14237](https://github.com/DataDog/integrations-core/pull/14237).
+* [Fixed] Fix a typo in the `disable_generic_tags` option description. See [#14246](https://github.com/DataDog/integrations-core/pull/14246).
+* [Fixed] Fix style. See [#14230](https://github.com/DataDog/integrations-core/pull/14230).
+* [Fixed] Fix traps db generation for expended representation. See [#14002](https://github.com/DataDog/integrations-core/pull/14002).
+
+## 18.0.0 / 2023-03-23
+
+* [Added] Allow to specify the mode when creating a temp dir. See [#14208](https://github.com/DataDog/integrations-core/pull/14208).
+* [Added] Allow enabling of tracing for tests with an environment variable. See [#14206](https://github.com/DataDog/integrations-core/pull/14206).
+* [Added] Move CI setup scripts to a provider-agnostic location. See [#14179](https://github.com/DataDog/integrations-core/pull/14179).
+* [Fixed] Skip metadata validation for non-metrics integrations. See [#14211](https://github.com/DataDog/integrations-core/pull/14211).
+* [Fixed] Consider empty environment variables as unset. See [#14210](https://github.com/DataDog/integrations-core/pull/14210).
+* [Fixed] Fix `generate-traps-db` command on windows. See [#14117](https://github.com/DataDog/integrations-core/pull/14117).
+* [Changed] Upgrade openstacksdk dependency and drop py2. See [#14109](https://github.com/DataDog/integrations-core/pull/14109).
+
+## 17.9.0 / 2023-03-01
+
+* [Added] Add process and runtime to allowed prefixes. See [#14058](https://github.com/DataDog/integrations-core/pull/14058).
+* [Fixed] Fix dependency update logic for latest versions of `packaging`. See [#14055](https://github.com/DataDog/integrations-core/pull/14055).
+
+## 17.8.2 / 2023-02-27
+
+* [Fixed] Update cryptography to 39.0.1. See [#13913](https://github.com/DataDog/integrations-core/pull/13913).
+* [Fixed] Remove autodiscovery category from the SNMP template. See [#13924](https://github.com/DataDog/integrations-core/pull/13924).
+* [Fixed] Remove py2 from the default template. See [#13838](https://github.com/DataDog/integrations-core/pull/13838).
+
+## 17.8.1 / 2023-01-25
+
+* [Fixed] Call hatch from `sys.executable`. See [#13769](https://github.com/DataDog/integrations-core/pull/13769).
+* [Fixed] Bump pydantic version to 1.10.4. See [#13764](https://github.com/DataDog/integrations-core/pull/13764).
+
+## 17.8.0 / 2023-01-20
+
+* [Added] Update style deps. See [#13740](https://github.com/DataDog/integrations-core/pull/13740).
+* [Fixed] Fix `ddev make release` when the `version` parameter is not provided. See [#13717](https://github.com/DataDog/integrations-core/pull/13717).
+* [Fixed] Improve startup time and fix some tests. See [#13703](https://github.com/DataDog/integrations-core/pull/13703).
+* [Fixed] Validate the new release version when provided. See [#13687](https://github.com/DataDog/integrations-core/pull/13687).
+* [Fixed] Always recreate the containers when using docker-compose in tests. See [#13685](https://github.com/DataDog/integrations-core/pull/13685).
+* [Fixed] Automatically delete the agent container when the container is stopped. See [#13675](https://github.com/DataDog/integrations-core/pull/13675).
+* [Fixed] Support license header validation for files encoded with utf8 with bom. See [#13676](https://github.com/DataDog/integrations-core/pull/13676).
+* [Fixed] Stop ignoring the `protobuf` dependency when updating them. See [#13642](https://github.com/DataDog/integrations-core/pull/13642).
+* [Fixed] Skip yanked artifacts from PyPi. See [#13632](https://github.com/DataDog/integrations-core/pull/13632).
+* [Fixed] Update the hatch env selection to act as the tox one. See [#13644](https://github.com/DataDog/integrations-core/pull/13644).
+* [Fixed] Rename TOX_SKIP_ENV to SKIP_ENV_NAME. See [#13633](https://github.com/DataDog/integrations-core/pull/13633).
+
+## 17.7.0 / 2022-12-27
+
+* [Added] Add hidden option to ignore manifest schema validation. See [#13569](https://github.com/DataDog/integrations-core/pull/13569).
+* [Added] Add `--fix` flag to `ddev validate license-headers` for automatically fixing errors. See [#13507](https://github.com/DataDog/integrations-core/pull/13507).
+* [Fixed] Properly account for other integration repos. See [#13581](https://github.com/DataDog/integrations-core/pull/13581).
+* [Fixed] Make `ddev validate license-header` honor gitignore files. See [#13439](https://github.com/DataDog/integrations-core/pull/13439).
+* [Fixed] Fix style. See [#13518](https://github.com/DataDog/integrations-core/pull/13518).
+
 ## 17.6.0 / 2022-12-13
 
 * [Added] Update marketplace GitHub actions to validate new template fields. See [#13267](https://github.com/DataDog/integrations-core/pull/13267).

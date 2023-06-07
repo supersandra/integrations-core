@@ -1,5 +1,17 @@
 # CHANGELOG - SonarQube
 
+## 2.2.4 / 2023-05-26
+
+* [Fixed] Switch a log from `warn` to `debug`. See [#14428](https://github.com/DataDog/integrations-core/pull/14428).
+
+## 2.2.3 / 2023-01-16 / Agent 7.43.0
+
+* [Fixed] Support components from paginated endpoint. See [#13699](https://github.com/DataDog/integrations-core/pull/13699).
+
+## 2.2.2 / 2022-12-23 / Agent 7.42.0
+
+* [Fixed] Fix config spec to allow additionalProperties. See [#13512](https://github.com/DataDog/integrations-core/pull/13512).
+
 ## 2.2.1 / 2022-12-16
 
 * [Fixed] Projects processed in `components` excluded from `components_discovery`. See [#13531](https://github.com/DataDog/integrations-core/pull/13531).

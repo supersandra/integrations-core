@@ -22,7 +22,7 @@ dev_option = click.option(
     '--dev/--prod',
     default=None,
     help=(
-        'By default we use the local version of the check. Pass --prod to use the one shipped with the agent. '
+        'By default we use version of the check that is shipped with the agent you are using.'
         'Pass --dev to explicitly enforce the local version. Also see the `--base` option.'
     ),
 )
@@ -401,7 +401,7 @@ def _get_agent_ver(ctx, python, agent):
     if os.path.isdir(legacy_fallback):
         legacy_fallback = ''
 
-    fallback = os.getenv('DDEV_E2E_AGENT', legacy_fallback)
+    fallback = os.getenv('DDEV_E2E_AGENT') or legacy_fallback
     # DDEV_E2E_AGENT_PY2 overrides DDEV_E2E_AGENT when starting a Python 2 environment
     if python == 2 and os.getenv('DDEV_E2E_AGENT_PY2'):
         fallback = os.getenv('DDEV_E2E_AGENT_PY2')

@@ -31,7 +31,7 @@ class Azure(BaseModel):
         allow_mutation = False
 
     deployment_type: Optional[str]
-    name: Optional[str]
+    fully_qualified_domain_name: Optional[str]
 
 
 class CustomQuery(BaseModel):
@@ -115,7 +115,6 @@ class QuerySamples(BaseModel):
     enabled: Optional[bool]
     events_statements_enable_procedure: Optional[str]
     events_statements_row_limit: Optional[int]
-    events_statements_table: Optional[str]
     events_statements_temp_table_name: Optional[str]
     explain_procedure: Optional[str]
     explained_queries_cache_maxsize: Optional[int]

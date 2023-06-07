@@ -1,5 +1,18 @@
 # CHANGELOG - Kube_apiserver_metrics
 
+## 3.6.0 / 2023-05-26
+
+* [Added] Add `flowcontrol` metrics. See [#14480](https://github.com/DataDog/integrations-core/pull/14480).
+* [Added] [kube-apiserver] Add new `aggregator_unavailable_apiservice` metric. See [#14457](https://github.com/DataDog/integrations-core/pull/14457).
+
+## 3.5.0 / 2023-04-14 / Agent 7.45.0
+
+* [Added] Adds new metric `kubernetes_feature_enabled`. See [#14147](https://github.com/DataDog/integrations-core/pull/14147).
+
+## 3.4.0 / 2023-03-03 / Agent 7.44.0
+
+* [Added] Add metric `apiserver_admission_webhook_fail_open_count`. See [#13750](https://github.com/DataDog/integrations-core/pull/13750).
+
 ## 3.3.0 / 2022-09-16 / Agent 7.40.0
 
 * [Added] Add new kube_apiserver_metric for deprecated API usage. See [#12887](https://github.com/DataDog/integrations-core/pull/12887). Thanks [alex-berger](https://github.com/alex-berger).

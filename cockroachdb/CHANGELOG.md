@@ -1,6 +1,18 @@
 # CHANGELOG - CockroachDB
 
-## 2.5.0 / 2022-12-09
+## 2.7.0 / 2023-05-26
+
+* [Added] Add an ignore_connection_errors option to the openmetrics check. See [#14504](https://github.com/DataDog/integrations-core/pull/14504).
+* [Added] Add new metrics from CockroachDB 23. See [#14492](https://github.com/DataDog/integrations-core/pull/14492).
+* [Added] Add new metrics to CockroachDB integration. See [#14484](https://github.com/DataDog/integrations-core/pull/14484).
+* [Fixed] Update minimum datadog base package version. See [#14463](https://github.com/DataDog/integrations-core/pull/14463).
+* [Fixed] Deprecate `use_latest_spec` option. See [#14446](https://github.com/DataDog/integrations-core/pull/14446).
+
+## 2.6.0 / 2023-03-03 / Agent 7.44.0
+
+* [Added] Collect schedules_BACKUP_last_completed_time metric. See [#13825](https://github.com/DataDog/integrations-core/pull/13825).
+
+## 2.5.0 / 2022-12-09 / Agent 7.42.0
 
 * [Added] Collect additional metrics. See [#13339](https://github.com/DataDog/integrations-core/pull/13339).
 

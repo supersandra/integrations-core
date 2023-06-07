@@ -1,5 +1,21 @@
 # CHANGELOG - Envoy
 
+## 2.6.0 / 2023-05-26
+
+* [Added] Add an ignore_connection_errors option to the openmetrics check. See [#14504](https://github.com/DataDog/integrations-core/pull/14504).
+* [Added] Add GRPC access log metrics. See [#13932](https://github.com/DataDog/integrations-core/pull/13932).
+* [Fixed] Update minimum datadog base package version. See [#14463](https://github.com/DataDog/integrations-core/pull/14463).
+* [Fixed] Deprecate `use_latest_spec` option. See [#14446](https://github.com/DataDog/integrations-core/pull/14446).
+
+## 2.5.0 / 2023-03-03 / Agent 7.44.0
+
+* [Added] Parse and add the tag `stat_prefix` to `ext_authz` metrics if possible. See [#13930](https://github.com/DataDog/integrations-core/pull/13930).
+* [Fixed] Add missing metrics. See [#14036](https://github.com/DataDog/integrations-core/pull/14036) and [#14088](https://github.com/DataDog/integrations-core/pull/14088).
+
+## 2.4.1 / 2023-01-20 / Agent 7.43.0
+
+* [Fixed] Fix metric mapping of counter metrics in the Openmetrics V2 version of the check. See [#13573](https://github.com/DataDog/integrations-core/pull/13573).
+
 ## 2.4.0 / 2022-09-16 / Agent 7.40.0
 
 * [Added] Update HTTP config spec templates. See [#12890](https://github.com/DataDog/integrations-core/pull/12890).

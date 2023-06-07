@@ -1,6 +1,47 @@
 # CHANGELOG - postgres
 
-## 13.2.0 / 2022-12-09
+## 13.7.0 / 2023-05-26
+
+* [Added] Support IAM-based RDS authentication. See [#14581](https://github.com/DataDog/integrations-core/pull/14581).
+
+## 13.6.0 / 2023-05-26
+
+* [Added] Support ingesting pg_settings for `dbm` users. See [#14577](https://github.com/DataDog/integrations-core/pull/14577).
+* [Added] Enable explain parameterized query feature by default. See [#14543](https://github.com/DataDog/integrations-core/pull/14543).
+* [Added] Create `postgresql.uptime` metric. See [#14470](https://github.com/DataDog/integrations-core/pull/14470).
+* [Added] Add pgss dealloc metric. See [#14289](https://github.com/DataDog/integrations-core/pull/14289).
+* [Fixed] Fix pg_replication_slots query generating errors on posgres replica database with replication slot. See [#14531](https://github.com/DataDog/integrations-core/pull/14531). Thanks [boluwaji-deriv](https://github.com/boluwaji-deriv).
+* [Fixed] Don't try to collect wal receiver if aurora is detected. See [#14537](https://github.com/DataDog/integrations-core/pull/14537).
+* [Fixed] Rename azure.name configuration key to azure.fully_qualified_domain_name. See [#14532](https://github.com/DataDog/integrations-core/pull/14532).
+* [Fixed] Fix query sampler producing constant errors about undefined parameters. See [#14440](https://github.com/DataDog/integrations-core/pull/14440).
+* [Deprecated] No longer test postgres 9.5. See [#14582](https://github.com/DataDog/integrations-core/pull/14582).
+
+## 13.5.0 / 2023-04-14 / Agent 7.45.0
+
+* [Added] Send resource_type/name for postgres integration metrics. See [#14338](https://github.com/DataDog/integrations-core/pull/14338).
+* [Added] Update dependencies. See [#14357](https://github.com/DataDog/integrations-core/pull/14357).
+* [Added] Add cloud_metadata to DBM event payloads. See [#14313](https://github.com/DataDog/integrations-core/pull/14313).
+* [Added] Add PostgreSQL replication conflict metrics from `pg_stat_database_conflicts`. See [#13542](https://github.com/DataDog/integrations-core/pull/13542).
+* [Added] Add new sessions metrics from PG14. See [#13723](https://github.com/DataDog/integrations-core/pull/13723).
+* [Fixed] Reduce the number of idle connections opened when running explain plans across databases. See [#14164](https://github.com/DataDog/integrations-core/pull/14164).
+
+## 13.4.0 / 2023-03-03 / Agent 7.44.0
+
+* [Added] Add resolved_hostname to metadata. See [#14092](https://github.com/DataDog/integrations-core/pull/14092).
+* [Added] Add `postgresql.replication_slot.*` metrics. See [#14013](https://github.com/DataDog/integrations-core/pull/14013).
+* [Added] Add `postgresql.wal_receiver.*` metrics. See [#13852](https://github.com/DataDog/integrations-core/pull/13852).
+* [Fixed] Avoid brief `postgresql.replication_delay` spikes after Postgres restart/reload. See [#13796](https://github.com/DataDog/integrations-core/pull/13796).
+
+## 13.3.0 / 2023-01-20 / Agent 7.43.0
+
+* [Added] Add `application_name` to activity metrics and report oldest `backend_xmin`, `backend_xid` and `xact_start`. See [#13523](https://github.com/DataDog/integrations-core/pull/13523).
+* [Added] Add SLRU cache metrics for Postgres. See [#13476](https://github.com/DataDog/integrations-core/pull/13476).
+* [Added] Add `postgresql.replication.backend_xmin_age` metric and use `client_addr` as additional label. See [#13413](https://github.com/DataDog/integrations-core/pull/13413).
+* [Fixed] Update dependencies. See [#13726](https://github.com/DataDog/integrations-core/pull/13726).
+* [Fixed] Fix bug in replication role tag. See [#13694](https://github.com/DataDog/integrations-core/pull/13694).
+* [Fixed] Bump the base check dependency. See [#13643](https://github.com/DataDog/integrations-core/pull/13643).
+
+## 13.2.0 / 2022-12-09 / Agent 7.42.0
 
 * [Added] Explain parameterized queries. See [#13434](https://github.com/DataDog/integrations-core/pull/13434).
 * [Added] Add deadlocks monotonic count metric. See [#13374](https://github.com/DataDog/integrations-core/pull/13374).

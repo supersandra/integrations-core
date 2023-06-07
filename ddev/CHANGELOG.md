@@ -1,5 +1,42 @@
 # CHANGELOG - ddev
 
+## 2.1.0 / 2023-05-26
+
+* [Added] Add validation for metric limit. See [#14528](https://github.com/DataDog/integrations-core/pull/14528).
+* [Fixed] Consider changes to `metadata.csv` as testable. See [#14429](https://github.com/DataDog/integrations-core/pull/14429).
+* [Fixed] Account for dependency upgrades in CI matrix logic. See [#14366](https://github.com/DataDog/integrations-core/pull/14366).
+* [Fixed] Fix edge case in CI matrix construction. See [#14355](https://github.com/DataDog/integrations-core/pull/14355).
+
+## 2.0.0 / 2023-04-11
+
+* [Changed] Replace flake8 and isort with Ruff. See [#14212](https://github.com/DataDog/integrations-core/pull/14212).
+
+## 1.6.0 / 2023-03-31
+
+* [Added] Add GitHub Actions workflows. See [#14187](https://github.com/DataDog/integrations-core/pull/14187).
+
+## 1.5.0 / 2023-03-23
+
+* [Added] Bump datadog-checks-dev to 18.x. See [#14225](https://github.com/DataDog/integrations-core/pull/14225).
+
+## 1.4.3 / 2023-03-01
+
+* [Fixed] Bump datadog_checks_dev dependency version. See [#14064](https://github.com/DataDog/integrations-core/pull/14064).
+
+## 1.4.2 / 2023-02-27
+
+* [Fixed] Bump datadog_checks_dev dependency version. See [#14040](https://github.com/DataDog/integrations-core/pull/14040).
+
+## 1.4.1 / 2023-01-25
+
+* [Fixed] Pin and bump the datadog_checks_dev version. See [#13557](https://github.com/DataDog/integrations-core/pull/13557).
+
+## 1.4.0 / 2023-01-20
+
+* [Added] Update manifest validation. See [#13637](https://github.com/DataDog/integrations-core/pull/13637).
+* [Added] Standardize integration selection. See [#13570](https://github.com/DataDog/integrations-core/pull/13570).
+* [Fixed] And fallbacks to some org config options. See [#13629](https://github.com/DataDog/integrations-core/pull/13629).
+
 ## 1.3.0 / 2022-12-09
 
 * [Added] Add `validate license-header` subcommand. See [#13417](https://github.com/DataDog/integrations-core/pull/13417).

@@ -1,6 +1,34 @@
 # CHANGELOG - mysql
 
-## 9.0.1 / 2022-12-09
+## 10.2.2 / 2023-05-26
+
+* [Fixed] mysql: don't overwrite table size metrics with sys table size metrics. See [#14612](https://github.com/DataDog/integrations-core/pull/14612).
+* [Fixed] Rename azure.name configuration key to azure.fully_qualified_domain_name. See [#14534](https://github.com/DataDog/integrations-core/pull/14534).
+* [Fixed] mysql: fix tracking references to self.check. See [#14419](https://github.com/DataDog/integrations-core/pull/14419). Thanks [asenci](https://github.com/asenci).
+
+## 10.2.1 / 2023-04-21 / Agent 7.45.0
+
+* [Fixed] Fix resources not sent on service check metrics. See [#14422](https://github.com/DataDog/integrations-core/pull/14422).
+
+## 10.2.0 / 2023-04-14
+
+* [Added] Send resource_type/name for mysql integration metrics. See [#14333](https://github.com/DataDog/integrations-core/pull/14333).
+* [Added] Add cloud_metadata to DBM event payloads. See [#14312](https://github.com/DataDog/integrations-core/pull/14312).
+* [Added] Update dependencies. See [#14357](https://github.com/DataDog/integrations-core/pull/14357).
+* [Fixed] Fix MariaDB InnoDB pending flush metric parsing. See [#13658](https://github.com/DataDog/integrations-core/pull/13658). Thanks [Jack97](https://github.com/Jack97).
+* [Fixed] Set self._check instance variables to make tracking work. See [#14146](https://github.com/DataDog/integrations-core/pull/14146).
+
+## 10.1.0 / 2023-03-03 / Agent 7.44.0
+
+* [Added] Add resolved_hostname to metadata. See [#14092](https://github.com/DataDog/integrations-core/pull/14092).
+
+## 10.0.0 / 2023-01-20 / Agent 7.43.0
+
+* [Added] Add deprecation notice for `extra_performance_metrics` option. See [#13273](https://github.com/DataDog/integrations-core/pull/13273).
+* [Fixed] Update dependencies. See [#13726](https://github.com/DataDog/integrations-core/pull/13726).
+* [Changed] Do not create a temporary table for MySQL sampling. See [#13561](https://github.com/DataDog/integrations-core/pull/13561).
+
+## 9.0.1 / 2022-12-09 / Agent 7.42.0
 
 * [Fixed] Update dependencies. See [#13478](https://github.com/DataDog/integrations-core/pull/13478).
 * [Fixed] Update cryptography dependency. See [#13367](https://github.com/DataDog/integrations-core/pull/13367).

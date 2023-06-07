@@ -14,6 +14,8 @@ from six import iteritems
 from datadog_checks.postgres import PostgreSql, util
 from datadog_checks.postgres.version_utils import VersionUtils
 
+from .common import PORT
+
 pytestmark = pytest.mark.unit
 
 
@@ -221,6 +223,19 @@ def test_version_metadata(check, test_case, params):
 
 
 @pytest.mark.parametrize(
+    'test_case',
+    [
+        ('any_hostname'),
+    ],
+)
+def test_resolved_hostname_metadata(check, test_case):
+    check.check_id = 'test:123'
+    with mock.patch('datadog_checks.base.stubs.datadog_agent.set_check_metadata') as m:
+        check.set_metadata('resolved_hostname', test_case)
+        m.assert_any_call('test:123', 'resolved_hostname', test_case)
+
+
+@pytest.mark.parametrize(
     'pg_version, wal_path',
     [
         ('9.6.2', '/var/lib/postgresql/data/pg_xlog'),
@@ -242,17 +257,53 @@ def test_get_wal_dir(integration_check, pg_instance, pg_version, wal_path):
 def test_replication_stats(aggregator, integration_check, pg_instance):
     check = integration_check(pg_instance)
     check.check(pg_instance)
-    base_tags = ['foo:bar', 'port:5432']
-    app1_tags = base_tags + ['wal_sync_state:async', 'wal_state:streaming', 'wal_app_name:app1']
-    app2_tags = base_tags + ['wal_sync_state:sync', 'wal_state:backup', 'wal_app_name:app2']
+    base_tags = ['foo:bar', 'port:5432', 'dd.internal.resource:database_instance:{}'.format(check.resolved_hostname)]
+    app1_tags = base_tags + [
+        'wal_sync_state:async',
+        'wal_state:streaming',
+        'wal_app_name:app1',
+        'wal_client_addr:1.1.1.1',
+    ]
+    app2_tags = base_tags + ['wal_sync_state:sync', 'wal_state:backup', 'wal_app_name:app2', 'wal_client_addr:1.1.1.1']
 
     aggregator.assert_metric('postgresql.db.count', 0, base_tags)
-    for suffix in ('wal_write_lag', 'wal_flush_lag', 'wal_replay_lag'):
+    for suffix in ('wal_write_lag', 'wal_flush_lag', 'wal_replay_lag', 'backend_xmin_age'):
         metric_name = 'postgresql.replication.{}'.format(suffix)
         aggregator.assert_metric(metric_name, 12, app1_tags)
         aggregator.assert_metric(metric_name, 13, app2_tags)
 
     aggregator.assert_all_metrics_covered()
+
+
+def test_replication_tag(aggregator, integration_check, pg_instance):
+    REPLICATION_TAG_TEST_METRIC = 'postgresql.db.count'
+
+    check = integration_check(pg_instance)
+    expected_tags = pg_instance['tags'] + [
+        'port:{}'.format(PORT),
+        'dd.internal.resource:database_instance:{}'.format(check.resolved_hostname),
+    ]
+
+    # default configuration (no replication)
+    check.check(pg_instance)
+    aggregator.assert_metric(REPLICATION_TAG_TEST_METRIC, tags=expected_tags)
+    aggregator.reset()
+
+    # role = master
+    pg_instance['tag_replication_role'] = True
+    check = integration_check(pg_instance)
+
+    check.check(pg_instance)
+    ROLE_TAG = "replication_role:master"
+    aggregator.assert_metric(REPLICATION_TAG_TEST_METRIC, tags=expected_tags + [ROLE_TAG])
+    aggregator.reset()
+
+    # switchover: master -> standby
+    STANDBY = "standby"
+    check._get_replication_role = MagicMock(return_value=STANDBY)
+    check.check(pg_instance)
+    ROLE_TAG = "replication_role:{}".format(STANDBY)
+    aggregator.assert_metric(REPLICATION_TAG_TEST_METRIC, tags=expected_tags + [ROLE_TAG])
 
 
 def test_query_timeout_connection_string(aggregator, integration_check, pg_instance):
@@ -278,6 +329,7 @@ def test_query_timeout_connection_string(aggregator, integration_check, pg_insta
                 'db:datadog_test',
                 'port:5432',
                 'foo:bar',
+                'dd.internal.resource:database_instance:stubbed.hostname',
             },
         ),
         (
@@ -287,6 +339,7 @@ def test_query_timeout_connection_string(aggregator, integration_check, pg_insta
                 'foo:bar',
                 'port:5432',
                 'server:localhost',
+                'dd.internal.resource:database_instance:stubbed.hostname',
             },
         ),
     ],
@@ -305,12 +358,12 @@ def test_server_tag_(disable_generic_tags, expected_tags, pg_instance):
 def test_resolved_hostname(disable_generic_tags, expected_hostname, pg_instance):
     instance = copy.deepcopy(pg_instance)
     instance['disable_generic_tags'] = disable_generic_tags
-    check = PostgreSql('test_instance', {}, [instance])
 
     with mock.patch(
         'datadog_checks.postgres.PostgreSql.resolve_db_host', return_value='resolved.hostname'
-    ) as resolve_db_host:
+    ) as resolve_db_host_mock:
+        check = PostgreSql('test_instance', {}, [instance])
         assert check.resolved_hostname == expected_hostname
-        assert resolve_db_host.called == disable_generic_tags, 'Expected resolve_db_host.called to be ' + str(
+        assert resolve_db_host_mock.called == disable_generic_tags, 'Expected resolve_db_host.called to be ' + str(
             disable_generic_tags
         )

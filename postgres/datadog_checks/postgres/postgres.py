@@ -13,6 +13,8 @@ from six import iteritems
 from datadog_checks.base import AgentCheck
 from datadog_checks.base.utils.db import QueryExecutor
 from datadog_checks.base.utils.db.utils import resolve_db_host as agent_host_resolver
+from datadog_checks.postgres import aws
+from datadog_checks.postgres.metadata import PostgresMetadata
 from datadog_checks.postgres.metrics_cache import PostgresMetricsCache
 from datadog_checks.postgres.relationsmanager import INDEX_BLOAT, RELATION_METRICS, TABLE_BLOAT, RelationsManager
 from datadog_checks.postgres.statement_samples import PostgresStatementSamples
@@ -20,15 +22,24 @@ from datadog_checks.postgres.statements import PostgresStatementMetrics
 
 from .config import PostgresConfig
 from .util import (
+    AWS_RDS_HOSTNAME_SUFFIX,
+    AZURE_DEPLOYMENT_TYPE_TO_RESOURCE_TYPE,
     CONNECTION_METRICS,
     FUNCTION_METRICS,
+    QUERY_PG_REPLICATION_SLOTS,
     QUERY_PG_STAT_DATABASE,
+    QUERY_PG_STAT_DATABASE_CONFLICTS,
+    QUERY_PG_STAT_WAL_RECEIVER,
+    QUERY_PG_UPTIME,
     REPLICATION_METRICS,
-    DatabaseConfigurationError,
+    SLRU_METRICS,
+    SNAPSHOT_TXID_METRICS,
+    SNAPSHOT_TXID_METRICS_LT_13,
+    DatabaseConfigurationError,  # noqa: F401
     fmt,
     get_schema_field,
 )
-from .version_utils import V9, V9_2, V10, VersionUtils
+from .version_utils import V9, V9_2, V10, V13, VersionUtils
 
 try:
     import datadog_agent
@@ -62,21 +73,57 @@ class PostgreSql(AgentCheck):
                 "rather than the now deprecated custom_metrics"
             )
         self._config = PostgresConfig(self.instance)
+        self.cloud_metadata = self._config.cloud_metadata
+        self.tags = self._config.tags
+        self.set_resource_tags()
         self.pg_settings = {}
         self._warnings_by_code = {}
         self.metrics_cache = PostgresMetricsCache(self._config)
         self.statement_metrics = PostgresStatementMetrics(self, self._config, shutdown_callback=self._close_db_pool)
         self.statement_samples = PostgresStatementSamples(self, self._config, shutdown_callback=self._close_db_pool)
+        self.metadata_samples = PostgresMetadata(self, self._config, shutdown_callback=self._close_db_pool)
         self._relations_manager = RelationsManager(self._config.relations)
         self._clean_state()
         self.check_initializations.append(lambda: RelationsManager.validate_relations_config(self._config.relations))
+        self.check_initializations.append(self.set_resolved_hostname_metadata)
         # map[dbname -> psycopg connection]
         self._db_pool = {}
         self._db_pool_lock = threading.Lock()
-
-        self.tags_without_db = [t for t in copy.copy(self._config.tags) if not t.startswith("db:")]
+        self.tags_without_db = [t for t in copy.copy(self.tags) if not t.startswith("db:")]
 
         self._dynamic_queries = None
+
+    def set_resource_tags(self):
+        if self.cloud_metadata.get("gcp") is not None:
+            self.tags.append(
+                "dd.internal.resource:gcp_sql_database_instance:{}:{}".format(
+                    self.cloud_metadata.get("gcp")["project_id"], self.cloud_metadata.get("gcp")["instance_id"]
+                )
+            )
+        if self.cloud_metadata.get("aws") is not None:
+            self.tags.append(
+                "dd.internal.resource:aws_rds_instance:{}".format(
+                    self.cloud_metadata.get("aws")["instance_endpoint"],
+                )
+            )
+        elif AWS_RDS_HOSTNAME_SUFFIX in self.resolved_hostname:
+            # allow for detecting if the host is an RDS host, and emit
+            # the resource properly even if the `aws` config is unset
+            self.tags.append("dd.internal.resource:aws_rds_instance:{}".format(self.resolved_hostname))
+        if self.cloud_metadata.get("azure") is not None:
+            deployment_type = self.cloud_metadata.get("azure")["deployment_type"]
+            # some `deployment_type`s map to multiple `resource_type`s
+            resource_type = AZURE_DEPLOYMENT_TYPE_TO_RESOURCE_TYPE.get(deployment_type)
+            if resource_type:
+                self.tags.append(
+                    "dd.internal.resource:{}:{}".format(resource_type, self.cloud_metadata.get("azure")["name"])
+                )
+        # finally, emit a `database_instance` resource for this instance
+        self.tags.append(
+            "dd.internal.resource:database_instance:{}".format(
+                self.resolved_hostname,
+            )
+        )
 
     def _new_query_executor(self, queries):
         return QueryExecutor(
@@ -97,17 +144,40 @@ class PostgreSql(AgentCheck):
         if self._dynamic_queries:
             return self._dynamic_queries
 
+        if self._version is None:
+            self.log.debug("Version set to None due to incorrect identified version, aborting dynamic queries")
+            return None
+
+        self.log.debug("Generating dynamic queries")
         queries = []
         if self.version >= V9_2:
             q_pg_stat_database = copy.deepcopy(QUERY_PG_STAT_DATABASE)
             q_pg_stat_database["query"] += " WHERE " + " AND ".join(
                 "datname not ilike '{}'".format(db) for db in self._config.ignore_databases
             )
+            q_pg_stat_database_conflicts = copy.deepcopy(QUERY_PG_STAT_DATABASE_CONFLICTS)
+            q_pg_stat_database_conflicts["query"] += " WHERE " + " AND ".join(
+                "datname not ilike '{}'".format(db) for db in self._config.ignore_databases
+            )
 
             if self._config.dbstrict:
                 q_pg_stat_database["query"] += " AND datname in('{}')".format(self._config.dbname)
+                q_pg_stat_database_conflicts["query"] += " AND datname in('{}')".format(self._config.dbname)
 
-            queries.extend([q_pg_stat_database])
+            queries.extend([q_pg_stat_database, q_pg_stat_database_conflicts, QUERY_PG_UPTIME])
+
+        if self.version >= V10:
+            # Wal receiver is not supported on aurora
+            # select * from pg_stat_wal_receiver;
+            # ERROR:  Function pg_stat_get_wal_receiver() is currently not supported in Aurora
+            if self.is_aurora is False:
+                queries.append(QUERY_PG_STAT_WAL_RECEIVER)
+            queries.append(QUERY_PG_REPLICATION_SLOTS)
+
+        if self.version >= V13:
+            queries.append(SNAPSHOT_TXID_METRICS)
+        if self.version < V13:
+            queries.append(SNAPSHOT_TXID_METRICS_LT_13)
 
         if not queries:
             self.log.debug("no dynamic queries defined")
@@ -115,7 +185,7 @@ class PostgreSql(AgentCheck):
 
         self._dynamic_queries = self._new_query_executor(queries)
         self._dynamic_queries.compile_queries()
-        self.log.debug("initialized {cnt} dynamic querie(s)", extra=dict(cnt=str(len(queries))))
+        self.log.debug("initialized %s dynamic querie(s)", len(queries))
 
         return self._dynamic_queries
 
@@ -128,13 +198,14 @@ class PostgreSql(AgentCheck):
         self._version = None
         self._is_aurora = None
         self.metrics_cache.clean_state()
+        self._dynamic_queries = None
 
     def _get_debug_tags(self):
         return ['agent_hostname:{}'.format(self.agent_hostname)]
 
     def _get_service_check_tags(self):
         service_check_tags = []
-        service_check_tags.extend(self._config.tags)
+        service_check_tags.extend(self.tags)
         return list(service_check_tags)
 
     def _get_replication_role(self):
@@ -218,6 +289,15 @@ class PostgreSql(AgentCheck):
             else:
                 self._resolved_hostname = self.agent_hostname
         return self._resolved_hostname
+
+    def set_resolved_hostname_metadata(self):
+        """
+        set_resolved_hostname_metadata cannot be invoked in the __init__ method because it calls self.set_metadata.
+        self.set_metadata can only be called successfully after the __init__ method has completed because
+        it relies on the metadata manager, which in turn relies on having a check_id set. The Agent only
+        sets the check_id after initialization has completed.
+        """
+        self.set_metadata('resolved_hostname', self._resolved_hostname)
 
     @property
     def agent_hostname(self):
@@ -368,6 +448,8 @@ class PostgreSql(AgentCheck):
             metric_scope.append(FUNCTION_METRICS)
         if self._config.collect_count_metrics:
             metric_scope.append(self.metrics_cache.get_count_metrics())
+        if self.version >= V13:
+            metric_scope.append(SLRU_METRICS)
 
         # Do we need relation-specific metrics?
         if self._config.relations:
@@ -422,10 +504,20 @@ class PostgreSql(AgentCheck):
                 connection_string += " options='-c statement_timeout=%s'" % self._config.query_timeout
             conn = psycopg2.connect(connection_string)
         else:
+            password = self._config.password
+            region = self._config.cloud_metadata.get('aws', {}).get('region', None)
+            if region is not None:
+                password = aws.generate_rds_iam_token(
+                    host=self._config.host,
+                    username=self._config.user,
+                    port=self._config.port,
+                    region=region,
+                )
+
             args = {
                 'host': self._config.host,
                 'user': self._config.user,
-                'password': self._config.password,
+                'password': password,
                 'database': dbname,
                 'sslmode': self._config.ssl_mode,
                 'application_name': self._config.application_name,
@@ -479,7 +571,7 @@ class PostgreSql(AgentCheck):
             self.count(
                 "dd.postgres.error",
                 1,
-                tags=self._config.tags + ["error:load-pg-settings"] + self._get_debug_tags(),
+                tags=self.tags + ["error:load-pg-settings"] + self._get_debug_tags(),
                 hostname=self.resolved_hostname,
             )
 
@@ -513,7 +605,7 @@ class PostgreSql(AgentCheck):
                     try:
                         db.close()
                     except Exception:
-                        self._log.exception("failed to close DB connection for db=%s", dbname)
+                        self.log.exception("failed to close DB connection for db=%s", dbname)
                 self._db_pool[dbname] = None
 
     def _collect_custom_queries(self, tags):
@@ -625,19 +717,26 @@ class PostgreSql(AgentCheck):
             self.warning(warning)
 
     def check(self, _):
-        tags = copy.copy(self._config.tags)
+        tags = copy.copy(self.tags)
         # Collect metrics
         try:
             # Check version
             self._connect()
             if self._config.tag_replication_role:
-                tags.extend(["replication_role:{}".format(self._get_replication_role())])
+                replication_role_tag = "replication_role:{}".format(self._get_replication_role())
+                tags.append(replication_role_tag)
+                self.tags_without_db = [
+                    t for t in copy.copy(self.tags_without_db) if not t.startswith("replication_role:")
+                ]
+                self.tags_without_db.append(replication_role_tag)
+
             self.log.debug("Running check against version %s: is_aurora: %s", str(self.version), str(self.is_aurora))
             self._collect_stats(tags)
             self._collect_custom_queries(tags)
             if self._config.dbm_enabled:
                 self.statement_metrics.run_job_loop(tags)
                 self.statement_samples.run_job_loop(tags)
+                self.metadata_samples.run_job_loop(tags)
             if self._config.collect_wal_metrics:
                 self._collect_wal_metrics(tags)
 

@@ -24,6 +24,7 @@ class Aws(BaseModel):
         allow_mutation = False
 
     instance_endpoint: Optional[str]
+    region: Optional[str]
 
 
 class Azure(BaseModel):
@@ -31,7 +32,15 @@ class Azure(BaseModel):
         allow_mutation = False
 
     deployment_type: Optional[str]
-    name: Optional[str]
+    fully_qualified_domain_name: Optional[str]
+
+
+class CollectSettings(BaseModel):
+    class Config:
+        allow_mutation = False
+
+    collection_interval: Optional[float]
+    enabled: Optional[bool]
 
 
 class Gcp(BaseModel):
@@ -110,6 +119,7 @@ class InstanceConfig(BaseModel):
     class Config:
         allow_mutation = False
 
+    activity_metrics_excluded_aggregations: Optional[Sequence[str]]
     application_name: Optional[str]
     aws: Optional[Aws]
     azure: Optional[Azure]
@@ -119,6 +129,7 @@ class InstanceConfig(BaseModel):
     collect_database_size_metrics: Optional[bool]
     collect_default_database: Optional[bool]
     collect_function_metrics: Optional[bool]
+    collect_settings: Optional[CollectSettings]
     collect_wal_metrics: Optional[bool]
     custom_queries: Optional[Sequence[Mapping[str, Any]]]
     data_directory: Optional[str]
@@ -129,6 +140,7 @@ class InstanceConfig(BaseModel):
     empty_default_hostname: Optional[bool]
     gcp: Optional[Gcp]
     host: str
+    idle_connection_timeout: Optional[int]
     ignore_databases: Optional[Sequence[str]]
     log_unobfuscated_plans: Optional[bool]
     log_unobfuscated_queries: Optional[bool]

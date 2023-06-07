@@ -405,15 +405,6 @@ files:
                 value:
                   type: integer
                   example: 5000
-              - name: events_statements_table
-                description: |
-                  Forces a specific events statements table. Must be one of events_statements_current,
-                  events_statements_history, events_statements_history_long. If not set then the agent will choose
-                  the best available table that is enabled and not empty.
-                value:
-                  type: string
-                  example: events_statements_history_long
-                  display_default: null
               - name: explain_procedure
                 description: |
                   Overrides the default procedure used for collecting execution plans. The agent will use this
@@ -545,12 +536,14 @@ files:
                 value:
                   type: string
                   example: flexible_server
-              - name: name
+              - name: fully_qualified_domain_name
                 description: |
-                  Equal to the name of the Azure MySQL database instance.
+                  Equal to the full qualified domain name of the Azure MySQL database.
+                  
+                  This value is optional if the value of `host` is already configured to the fully qualified domain name.
                 value:
                   type: string
-                  example: mysql-database
+                  example: mysql-database.database.windows.net
 
           - name: obfuscator_options
             description: |

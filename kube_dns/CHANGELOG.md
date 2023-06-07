@@ -1,6 +1,15 @@
 # CHANGELOG - Kube-dns
 
-## 4.0.0 / 2022-12-09
+## 4.0.2 / 2023-05-26
+
+* [Fixed] Revert protobuf dependency update. See [#14618](https://github.com/DataDog/integrations-core/pull/14618).
+* [Fixed] Update dependencies. See [#14594](https://github.com/DataDog/integrations-core/pull/14594).
+
+## 4.0.1 / 2023-01-20 / Agent 7.43.0
+
+* [Fixed] Fix setting of default health URL for kube_dns, kube_proxy, kube_metrics_server health checks. See [#13571](https://github.com/DataDog/integrations-core/pull/13571).
+
+## 4.0.0 / 2022-12-09 / Agent 7.42.0
 
 * [Fixed] Update protobuf. See [#13262](https://github.com/DataDog/integrations-core/pull/13262).
 * [Changed] Add health check to kube_* integrations. See [#10668](https://github.com/DataDog/integrations-core/pull/10668).

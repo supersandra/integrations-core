@@ -44,6 +44,7 @@ class PostgresConfig:
             raise ConfigurationError("Application name can include only ASCII characters: %s", self.application_name)
 
         self.query_timeout = int(instance.get('query_timeout', 5000))
+        self.idle_connection_timeout = instance.get('idle_connection_timeout', 60000)
         self.relations = instance.get('relations', [])
         if self.relations and not self.dbname:
             raise ConfigurationError('"dbname" parameter must be set when using the "relations" parameter.')
@@ -65,6 +66,7 @@ class PostgresConfig:
         # Default value for `count_metrics` is True for backward compatibility
         self.collect_count_metrics = is_affirmative(instance.get('collect_count_metrics', True))
         self.collect_activity_metrics = is_affirmative(instance.get('collect_activity_metrics', False))
+        self.activity_metrics_excluded_aggregations = instance.get('activity_metrics_excluded_aggregations', [])
         self.collect_database_size_metrics = is_affirmative(instance.get('collect_database_size_metrics', True))
         self.collect_wal_metrics = is_affirmative(instance.get('collect_wal_metrics', False))
         self.collect_bloat_metrics = is_affirmative(instance.get('collect_bloat_metrics', False))
@@ -88,12 +90,16 @@ class PostgresConfig:
         # statement samples & execution plans
         self.pg_stat_activity_view = instance.get('pg_stat_activity_view', 'pg_stat_activity')
         self.statement_samples_config = instance.get('query_samples', instance.get('statement_samples', {})) or {}
+        self.settings_metadata_config = instance.get('collect_settings', {}) or {}
+        self.resources_metadata_config = instance.get('collect_resources', {}) or {}
         self.statement_activity_config = instance.get('query_activity', {}) or {}
         self.statement_metrics_config = instance.get('query_metrics', {}) or {}
         self.cloud_metadata = {}
         aws = instance.get('aws', {})
         gcp = instance.get('gcp', {})
         azure = instance.get('azure', {})
+        # Remap fully_qualified_domain_name to name
+        azure = {k if k != 'fully_qualified_domain_name' else 'name': v for k, v in azure.items()}
         if aws:
             self.cloud_metadata.update({'aws': aws})
         if gcp:

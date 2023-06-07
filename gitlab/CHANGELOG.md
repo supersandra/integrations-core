@@ -1,6 +1,34 @@
 # CHANGELOG - gitlab
 
-## 5.3.2 / 2022-12-09
+## 6.1.0 / 2023-05-26
+
+* [Added] Add an ignore_connection_errors option to the openmetrics check. See [#14504](https://github.com/DataDog/integrations-core/pull/14504).
+* [Added] Add support for Gitaly metrics. See [#14316](https://github.com/DataDog/integrations-core/pull/14316).
+* [Fixed] Revert protobuf dependency update. See [#14618](https://github.com/DataDog/integrations-core/pull/14618).
+* [Fixed] Update dependencies. See [#14594](https://github.com/DataDog/integrations-core/pull/14594).
+* [Fixed] Refactor how we manage the namespaces. See [#14462](https://github.com/DataDog/integrations-core/pull/14462).
+* [Fixed] Update minimum datadog base package version. See [#14463](https://github.com/DataDog/integrations-core/pull/14463).
+* [Fixed] Deprecate `use_latest_spec` option. See [#14446](https://github.com/DataDog/integrations-core/pull/14446).
+
+## 6.0.2 / 2023-04-21 / Agent 7.45.0
+
+* [Fixed] Collect the readiness service checks even if the readiness payload is malformed. See [#14411](https://github.com/DataDog/integrations-core/pull/14411).
+
+## 6.0.1 / 2023-04-19
+
+* [Fixed] Fix Gitlab documentation in conf.yaml. See [#14400](https://github.com/DataDog/integrations-core/pull/14400).
+* [Fixed] Ensure the check runs correctly if no gitlab url is defined. See [#14403](https://github.com/DataDog/integrations-core/pull/14403).
+
+## 6.0.0 / 2023-04-14
+
+* [Added] Add new service checks. See [#14311](https://github.com/DataDog/integrations-core/pull/14311).
+* [Fixed] Fix the `health_service_check` config option. See [#14288](https://github.com/DataDog/integrations-core/pull/14288).
+* [Fixed] Add the `prometheus_endpoint` option to the models. See [#14264](https://github.com/DataDog/integrations-core/pull/14264).
+* [Fixed] Add missing tags when the service check is critical. See [#14262](https://github.com/DataDog/integrations-core/pull/14262).
+* [Changed] Add support for OpenMetricsV2. See [#14273](https://github.com/DataDog/integrations-core/pull/14273).
+* [Changed] Set the `send_distribution_sums_as_monotonic` option to `true` by default. See [#14290](https://github.com/DataDog/integrations-core/pull/14290).
+
+## 5.3.2 / 2022-12-09 / Agent 7.42.0
 
 * [Fixed] Update protobuf. See [#13262](https://github.com/DataDog/integrations-core/pull/13262).
 

@@ -1,6 +1,25 @@
 # CHANGELOG - Datadog Checks Downloader
 
-## 3.10.1 / 2022-12-09
+## 4.2.1 / 2023-05-26
+
+* [Fixed] Update dependencies. See [#14594](https://github.com/DataDog/integrations-core/pull/14594).
+
+## 4.2.0 / 2023-05-24
+
+* [Added] Add an option to bypass TUF and in-toto verification in the checks downloader. See [#14168](https://github.com/DataDog/integrations-core/pull/14168).
+
+## 4.1.0 / 2023-03-03 / Agent 7.44.0
+
+* [Added] Prevent Alphas, Betas and RC versions of checks from being installed unless specified. See [#13837](https://github.com/DataDog/integrations-core/pull/13837).
+* [Fixed] Remove the use of the deprecated `pkg_resources` package. See [#13842](https://github.com/DataDog/integrations-core/pull/13842).
+
+## 4.0.0 / 2023-01-20 / Agent 7.43.0
+
+* [Fixed] Update dependencies. See [#13726](https://github.com/DataDog/integrations-core/pull/13726).
+* [Fixed] Fix path separator-related bug affecting Windows. See [#13631](https://github.com/DataDog/integrations-core/pull/13631).
+* [Removed] Update TUF to 2.0.0. See [#13331](https://github.com/DataDog/integrations-core/pull/13331).
+
+## 3.10.1 / 2022-12-09 / Agent 7.42.0
 
 * [Fixed] Update dependencies. See [#13478](https://github.com/DataDog/integrations-core/pull/13478).
 

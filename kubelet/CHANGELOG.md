@@ -1,6 +1,16 @@
 # CHANGELOG - kubelet
 
-## 7.5.2 / 2022-12-09
+## 7.7.0 / 2023-05-26
+
+* [Added] [kubelet] Add node filesystem stat from stats/summary. See [#14426](https://github.com/DataDog/integrations-core/pull/14426).
+* [Fixed] Fix kubelet check failing to initialize when get_connection_info is empty. See [#14546](https://github.com/DataDog/integrations-core/pull/14546).
+
+## 7.6.0 / 2023-04-14 / Agent 7.45.0
+
+* [Added] Adds container memory usage metrics from /stats/summary and kubelet memory usage. See [#14150](https://github.com/DataDog/integrations-core/pull/14150).
+* [Fixed] Support Ephemeral Percistent volume claim. See [#14194](https://github.com/DataDog/integrations-core/pull/14194).
+
+## 7.5.2 / 2022-12-09 / Agent 7.42.0
 
 * [Fixed] Set the `prometheus_url` for the kubelet endpoints in the `__init__` function. See [#13360](https://github.com/DataDog/integrations-core/pull/13360).
 

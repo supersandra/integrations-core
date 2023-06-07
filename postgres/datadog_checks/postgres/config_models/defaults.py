@@ -14,6 +14,10 @@ def shared_service(field, value):
     return get_default_field_value(field, value)
 
 
+def instance_activity_metrics_excluded_aggregations(field, value):
+    return []
+
+
 def instance_application_name(field, value):
     return 'datadog-agent'
 
@@ -50,6 +54,10 @@ def instance_collect_function_metrics(field, value):
     return False
 
 
+def instance_collect_settings(field, value):
+    return get_default_field_value(field, value)
+
+
 def instance_collect_wal_metrics(field, value):
     return False
 
@@ -84,6 +92,10 @@ def instance_empty_default_hostname(field, value):
 
 def instance_gcp(field, value):
     return get_default_field_value(field, value)
+
+
+def instance_idle_connection_timeout(field, value):
+    return 60000
 
 
 def instance_ignore_databases(field, value):

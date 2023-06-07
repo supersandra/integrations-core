@@ -1,3 +1,7 @@
+# (C) Datadog, Inc. 2022-present
+# All rights reserved
+# Licensed under a 3-clause BSD style license (see LICENSE)
+
 import pytest
 
 from datadog_checks.base.utils.db.sql import compute_sql_signature
@@ -20,6 +24,7 @@ def dbm_instance(pg_instance):
     }
     pg_instance['query_activity'] = {'enabled': True, 'collection_interval': 1}
     pg_instance['query_metrics'] = {'enabled': True, 'run_sync': True, 'collection_interval': 10}
+    pg_instance['collect_resources'] = {'enabled': False}
     return pg_instance
 
 
