@@ -2,7 +2,8 @@
 AgentCheck.check(instance)
 </code></pre></div> <p>Agent 8 signature:</p> <div class=highlight><pre><span></span><code>AgentCheck(name, init_config, instance)     # one instance
 AgentCheck.check()                          # no more instance argument for check method
-</code></pre></div> <div class="admonition note"> <p class=admonition-title>Note</p> <p>when loading a Custom check, the Agent will inspect the module searching for a subclass of <code>AgentCheck</code>. If such a class exists but has been derived in turn, it'll be ignored - <strong>you should never derive from an existing Check</strong>.</p> </div> <details class=quote> <summary>Source code in <code>datadog_checks/base/checks/base.py</code></summary> <div class=highlight><pre><span></span><code><span class=k>class</span> <span class=nc>AgentCheck</span><span class=p>(</span><span class=nb>object</span><span class=p>):</span>
+</code></pre></div> <div class="admonition note"> <p class=admonition-title>Note</p> <p>when loading a Custom check, the Agent will inspect the module searching for a subclass of <code>AgentCheck</code>. If such a class exists but has been derived in turn, it'll be ignored - <strong>you should never derive from an existing Check</strong>.</p> </div> <details class=quote> <summary>Source code in <code>datadog_checks/base/checks/base.py</code></summary> <div class=highlight><pre><span></span><code><span class=nd>@traced_class</span>
+<span class=k>class</span> <span class=nc>AgentCheck</span><span class=p>(</span><span class=nb>object</span><span class=p>):</span>
     <span class=sd>&quot;&quot;&quot;</span>
 <span class=sd>    The base class for any Agent based integration.</span>
 
