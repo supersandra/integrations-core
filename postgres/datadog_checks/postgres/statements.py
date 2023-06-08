@@ -314,21 +314,21 @@ class PostgresStatementMetrics(DBMAsyncJob):
                         code=DatabaseConfigurationError.pg_stat_statements_not_loaded.value,
                     ),
                 )
-            elif isinstance(e, psycopg2.errors.UndefinedTable) and 'pg_stat_statements' in str(e.pgerror):
-                error_tag = "error:database-{}-pg_stat_statements_not_created".format(type(e).__name__)
-                self._check.record_warning(
-                    DatabaseConfigurationError.pg_stat_statements_not_created,
-                    warning_with_tags(
-                        "Unable to collect statement metrics because pg_stat_statements is not created "
-                        "in database '%s'. See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
-                        "troubleshooting#%s for more details",
-                        self._config.dbname,
-                        DatabaseConfigurationError.pg_stat_statements_not_created.value,
-                        host=self._check.resolved_hostname,
-                        dbname=self._config.dbname,
-                        code=DatabaseConfigurationError.pg_stat_statements_not_created.value,
-                    ),
-                )
+            # elif isinstance(e, psycopg2.errors.UndefinedTable) and 'pg_stat_statements' in str(e.pgerror):
+            #     error_tag = "error:database-{}-pg_stat_statements_not_created".format(type(e).__name__)
+            #     self._check.record_warning(
+            #         DatabaseConfigurationError.pg_stat_statements_not_created,
+            #         warning_with_tags(
+            #             "Unable to collect statement metrics because pg_stat_statements is not created "
+            #             "in database '%s'. See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
+            #             "troubleshooting#%s for more details",
+            #             self._config.dbname,
+            #             DatabaseConfigurationError.pg_stat_statements_not_created.value,
+            #             host=self._check.resolved_hostname,
+            #             dbname=self._config.dbname,
+            #             code=DatabaseConfigurationError.pg_stat_statements_not_created.value,
+            #         ),
+            #     )
             else:
                 self._check.warning(
                     warning_with_tags(
