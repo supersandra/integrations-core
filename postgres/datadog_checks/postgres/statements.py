@@ -315,21 +315,21 @@ class PostgresStatementMetrics(DBMAsyncJob):
                     ),
                 )
             elif isinstance(e, psycopg2.errors.UndefinedTable) and 'pg_stat_statements' in str(e.pgerror):
-                return []
-                # error_tag = "error:database-{}-pg_stat_statements_not_created".format(type(e).__name__)
-                # self._check.record_warning(
-                #     DatabaseConfigurationError.pg_stat_statements_not_created,
-                #     warning_with_tags(
-                #         "Unable to collect statement metrics because pg_stat_statements is not created "
-                #         "in database '%s'. See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
-                #         "troubleshooting#%s for more details",
-                #         self._config.dbname,
-                #         DatabaseConfigurationError.pg_stat_statements_not_created.value,
-                #         host=self._check.resolved_hostname,
-                #         dbname=self._config.dbname,
-                #         code=DatabaseConfigurationError.pg_stat_statements_not_created.value,
-                #     ),
-                # )
+                error_tag = "error:database-{}-pg_stat_statements_not_created".format(type(e).__name__)
+                self._log.warning("UndefinedTable exception for {}".format(self._check.resolved_hostname))
+                self._check.record_warning(
+                    DatabaseConfigurationError.pg_stat_statements_not_created,
+                    warning_with_tags(
+                        "Unable to collect statement metrics because pg_stat_statements is not created "
+                        "in database '%s'. See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
+                        "troubleshooting#%s for more details",
+                        self._config.dbname,
+                        DatabaseConfigurationError.pg_stat_statements_not_created.value,
+                        host=self._check.resolved_hostname,
+                        dbname=self._config.dbname,
+                        code=DatabaseConfigurationError.pg_stat_statements_not_created.value,
+                    ),
+                )
             else:
                 self._check.warning(
                     warning_with_tags(
@@ -369,6 +369,7 @@ class PostgresStatementMetrics(DBMAsyncJob):
                     hostname=self._check.resolved_hostname,
                 )
         except psycopg2.Error as e:
+            self._log.warning("pg_stat_statements failed to load for {}".format(self._check.resolved_hostname))
             self._log.warning("Failed to query for pg_stat_statements_info: %s", e)
 
     @tracked_method(agent_check_getter=agent_check_getter)
