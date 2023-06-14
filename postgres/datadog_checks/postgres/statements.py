@@ -166,11 +166,12 @@ class PostgresStatementMetrics(DBMAsyncJob):
         query = STATEMENTS_QUERY.format(
             cols='*', pg_stat_statements_view=self._config.pg_stat_statements_view, extra_clauses="LIMIT 0", filters=""
         )
-        cursor = self._check._get_db(self._config.dbname).cursor()
-        self._execute_query(cursor, query, params=(self._config.dbname,))
-        col_names = [desc[0] for desc in cursor.description] if cursor.description else []
-        self._stat_column_cache = col_names
-        return col_names
+        db = self._check._get_db(self._config.dbname)
+        with db.cursor() as cursor:
+            self._execute_query(cursor, query, params=(self._config.dbname,))
+            col_names = [desc[0] for desc in cursor.description] if cursor.description else []
+            self._stat_column_cache = col_names
+            return col_names
 
     def run_job(self):
         self._tags_no_db = [t for t in self._tags if not t.startswith('db:')]
@@ -277,16 +278,18 @@ class PostgresStatementMetrics(DBMAsyncJob):
                     "pg_database.datname NOT ILIKE %s" for _ in self._config.ignore_databases
                 )
                 params = params + tuple(self._config.ignore_databases)
-            return self._execute_query(
-                self._check._get_db(self._config.dbname).cursor(cursor_factory=psycopg2.extras.DictCursor),
-                STATEMENTS_QUERY.format(
-                    cols=', '.join(query_columns),
-                    pg_stat_statements_view=self._config.pg_stat_statements_view,
-                    filters=filters,
-                    extra_clauses="",
-                ),
-                params=params,
-            )
+            db = self._check._get_db(self._config.dbname)
+            with db.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                return self._execute_query(
+                    cursor,
+                    STATEMENTS_QUERY.format(
+                        cols=', '.join(query_columns),
+                        pg_stat_statements_view=self._config.pg_stat_statements_view,
+                        filters=filters,
+                        extra_clauses="",
+                    ),
+                    params=params,
+                )
         except psycopg2.Error as e:
             error_tag = "error:database-{}".format(type(e).__name__)
 
@@ -349,25 +352,27 @@ class PostgresStatementMetrics(DBMAsyncJob):
     def _emit_pg_stat_statements_metrics(self):
         query = PG_STAT_STATEMENTS_COUNT_QUERY_LT_9_4 if self._check.version < V9_4 else PG_STAT_STATEMENTS_COUNT_QUERY
         try:
-            rows = self._execute_query(
-                self._check._get_db(self._config.dbname).cursor(cursor_factory=psycopg2.extras.DictCursor),
-                query,
-            )
-            count = 0
-            if rows:
-                count = rows[0][0]
-            self._check.gauge(
-                "postgresql.pg_stat_statements.max",
-                self._check.pg_settings.get("pg_stat_statements.max", 0),
-                tags=self._tags,
-                hostname=self._check.resolved_hostname,
-            )
-            self._check.count(
-                "postgresql.pg_stat_statements.count",
-                count,
-                tags=self._tags,
-                hostname=self._check.resolved_hostname,
-            )
+            db = self._check._get_db(self._config.dbname)
+            with db.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                rows = self._execute_query(
+                    cursor,
+                    query,
+                )
+                count = 0
+                if rows:
+                    count = rows[0][0]
+                self._check.gauge(
+                    "postgresql.pg_stat_statements.max",
+                    self._check.pg_settings.get("pg_stat_statements.max", 0),
+                    tags=self._tags,
+                    hostname=self._check.resolved_hostname,
+                )
+                self._check.count(
+                    "postgresql.pg_stat_statements.count",
+                    count,
+                    tags=self._tags,
+                    hostname=self._check.resolved_hostname,
+                )
         except psycopg2.Error as e:
             self._log.warning("Failed to query for pg_stat_statements count: %s", e)
 
