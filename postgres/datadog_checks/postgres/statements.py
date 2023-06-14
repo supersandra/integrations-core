@@ -154,6 +154,8 @@ class PostgresStatementMetrics(DBMAsyncJob):
             # A failed query could've derived from incorrect columns within the cache. It's a rare edge case,
             # but the next time the query is run, it will retrieve the correct columns.
             self._stat_column_cache = []
+            if cursor:
+                cursor.close()
             raise e
 
     @tracked_method(agent_check_getter=agent_check_getter, track_result_length=True)
