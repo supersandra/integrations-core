@@ -146,11 +146,14 @@ class PostgresStatementMetrics(DBMAsyncJob):
             self._log.debug("Running query [%s] %s", query, params)
             cursor.execute(query, params)
             return cursor.fetchall()
-        except (psycopg2.ProgrammingError, psycopg2.errors.QueryCanceled) as e:
-            # A failed query could've derived from incorrect columns within the cache. It's a rare edge case,
-            # but the next time the query is run, it will retrieve the correct columns.
-            self._stat_column_cache = []
-            raise e
+        except Exception as e:
+            # # A failed query could've derived from incorrect columns within the cache. It's a rare edge case,
+            # # but the next time the query is run, it will retrieve the correct columns.
+            # self._stat_column_cache = []
+            # raise e
+            e = None
+            if cursor:
+                cursor.close()
 
     @tracked_method(agent_check_getter=agent_check_getter, track_result_length=True)
     def _get_pg_stat_statements_columns(self):
@@ -166,9 +169,11 @@ class PostgresStatementMetrics(DBMAsyncJob):
         query = STATEMENTS_QUERY.format(
             cols='*', pg_stat_statements_view=self._config.pg_stat_statements_view, extra_clauses="LIMIT 0", filters=""
         )
-        cursor = self._check._get_db(self._config.dbname).cursor()
-        self._execute_query(cursor, query, params=(self._config.dbname,))
-        col_names = [desc[0] for desc in cursor.description] if cursor.description else []
+        #TODO: need a try-with-resources here
+        # cursor = self._check._get_db(self._config.dbname).cursor()
+        # self._execute_query(cursor, query, params=(self._config.dbname,))
+        # col_names = [desc[0] for desc in cursor.description] if cursor.description else []
+        col_names = ["blk_read_time", "blk_write_time", "calls", "datname", "local_blks_dirtied", "local_blks_hit", "local_blks_read", "local_blks_written", "query", "queryid", "rolname", "rows", "shared_blks_dirtied", "shared_blks_hit", "shared_blks_read", "shared_blks_written", "temp_blks_read", "temp_blks_written", "total_time"]
         self._stat_column_cache = col_names
         return col_names
 
@@ -240,31 +245,31 @@ class PostgresStatementMetrics(DBMAsyncJob):
             if self._check.pg_settings.get("track_io_timing") != "on":
                 desired_columns -= PG_STAT_STATEMENTS_TIMING_COLUMNS
 
-            pg_stat_statements_max = int(self._check.pg_settings.get("pg_stat_statements.max"))
-            if pg_stat_statements_max > self._pg_stat_statements_max_warning_threshold:
-                self._check.record_warning(
-                    DatabaseConfigurationError.high_pg_stat_statements_max,
-                    warning_with_tags(
-                        "pg_stat_statements.max is set to %d which is higher than the supported "
-                        "value of %d. This can have a negative impact on database and collection of "
-                        "query metrics performance. Consider lowering the pg_stat_statements.max value to %d. "
-                        "Alternatively, you may acknowledge the potential performance impact by increasing the "
-                        "query_metrics.pg_stat_statements_max_warning_threshold to equal or greater than %d to "
-                        "silence this warning. "
-                        "See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
-                        "troubleshooting#%s for more details",
-                        pg_stat_statements_max,
-                        self._pg_stat_statements_max_warning_threshold,
-                        self._pg_stat_statements_max_warning_threshold,
-                        self._pg_stat_statements_max_warning_threshold,
-                        DatabaseConfigurationError.high_pg_stat_statements_max.value,
-                        host=self._check.resolved_hostname,
-                        dbname=self._config.dbname,
-                        code=DatabaseConfigurationError.high_pg_stat_statements_max.value,
-                        value=pg_stat_statements_max,
-                        threshold=self._pg_stat_statements_max_warning_threshold,
-                    ),
-                )
+            # pg_stat_statements_max = int(self._check.pg_settings.get("pg_stat_statements.max"))
+            # if pg_stat_statements_max > self._pg_stat_statements_max_warning_threshold:
+            #     self._check.record_warning(
+            #         DatabaseConfigurationError.high_pg_stat_statements_max,
+            #         warning_with_tags(
+            #             "pg_stat_statements.max is set to %d which is higher than the supported "
+            #             "value of %d. This can have a negative impact on database and collection of "
+            #             "query metrics performance. Consider lowering the pg_stat_statements.max value to %d. "
+            #             "Alternatively, you may acknowledge the potential performance impact by increasing the "
+            #             "query_metrics.pg_stat_statements_max_warning_threshold to equal or greater than %d to "
+            #             "silence this warning. "
+            #             "See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
+            #             "troubleshooting#%s for more details",
+            #             pg_stat_statements_max,
+            #             self._pg_stat_statements_max_warning_threshold,
+            #             self._pg_stat_statements_max_warning_threshold,
+            #             self._pg_stat_statements_max_warning_threshold,
+            #             DatabaseConfigurationError.high_pg_stat_statements_max.value,
+            #             host=self._check.resolved_hostname,
+            #             dbname=self._config.dbname,
+            #             code=DatabaseConfigurationError.high_pg_stat_statements_max.value,
+            #             value=pg_stat_statements_max,
+            #             threshold=self._pg_stat_statements_max_warning_threshold,
+            #         ),
+            #     )
 
             query_columns = sorted(list(available_columns & desired_columns))
             params = ()
@@ -277,71 +282,77 @@ class PostgresStatementMetrics(DBMAsyncJob):
                     "pg_database.datname NOT ILIKE %s" for _ in self._config.ignore_databases
                 )
                 params = params + tuple(self._config.ignore_databases)
-            return self._execute_query(
-                self._check._get_db(self._config.dbname).cursor(cursor_factory=psycopg2.extras.DictCursor),
-                STATEMENTS_QUERY.format(
-                    cols=', '.join(query_columns),
-                    pg_stat_statements_view=self._config.pg_stat_statements_view,
-                    filters=filters,
-                    extra_clauses="",
-                ),
-                params=params,
-            )
-        except psycopg2.Error as e:
-            error_tag = "error:database-{}".format(type(e).__name__)
+            db = self._check._get_db(self._config.dbname)
+            with db.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                return self._execute_query(
+                    cursor,
+                    STATEMENTS_QUERY.format(
+                        cols=', '.join(query_columns),
+                        pg_stat_statements_view=self._config.pg_stat_statements_view,
+                        filters=filters,
+                        extra_clauses="",
+                    ),
+                    params=params,
+                )
+        except Exception as e:
+            e = None
+            if cursor:
+                cursor.close()
 
-            if (
-                isinstance(e, psycopg2.errors.ObjectNotInPrerequisiteState)
-            ) and 'pg_stat_statements must be loaded' in str(e.pgerror):
-                error_tag = "error:database-{}-pg_stat_statements_not_loaded".format(type(e).__name__)
-                self._check.record_warning(
-                    DatabaseConfigurationError.pg_stat_statements_not_loaded,
-                    warning_with_tags(
-                        "Unable to collect statement metrics because pg_stat_statements "
-                        "extension is not loaded in database '%s'. "
-                        "See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
-                        "troubleshooting#%s for more details",
-                        self._config.dbname,
-                        DatabaseConfigurationError.pg_stat_statements_not_loaded.value,
-                        host=self._check.resolved_hostname,
-                        dbname=self._config.dbname,
-                        code=DatabaseConfigurationError.pg_stat_statements_not_loaded.value,
-                    ),
-                )
-            elif isinstance(e, psycopg2.errors.UndefinedTable) and 'pg_stat_statements' in str(e.pgerror):
-                error_tag = "error:database-{}-pg_stat_statements_not_created".format(type(e).__name__)
-                self._check.record_warning(
-                    DatabaseConfigurationError.pg_stat_statements_not_created,
-                    warning_with_tags(
-                        "Unable to collect statement metrics because pg_stat_statements is not created "
-                        "in database '%s'. See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
-                        "troubleshooting#%s for more details",
-                        self._config.dbname,
-                        DatabaseConfigurationError.pg_stat_statements_not_created.value,
-                        host=self._check.resolved_hostname,
-                        dbname=self._config.dbname,
-                        code=DatabaseConfigurationError.pg_stat_statements_not_created.value,
-                    ),
-                )
-            else:
-                self._check.warning(
-                    warning_with_tags(
-                        "Unable to collect statement metrics because of an error running queries "
-                        "in database '%s'. See https://docs.datadoghq.com/database_monitoring/troubleshooting for "
-                        "help: %s",
-                        self._config.dbname,
-                        str(e),
-                        host=self._check.resolved_hostname,
-                        dbname=self._config.dbname,
-                    ),
-                )
-
-            self._check.count(
-                "dd.postgres.statement_metrics.error",
-                1,
-                tags=self._tags + [error_tag] + self._check._get_debug_tags(),
-                hostname=self._check.resolved_hostname,
-            )
+            # error_tag = "error:database-{}".format(type(e).__name__)
+            #
+            # if (
+            #     isinstance(e, psycopg2.errors.ObjectNotInPrerequisiteState)
+            # ) and 'pg_stat_statements must be loaded' in str(e.pgerror):
+            #     error_tag = "error:database-{}-pg_stat_statements_not_loaded".format(type(e).__name__)
+            #     self._check.record_warning(
+            #         DatabaseConfigurationError.pg_stat_statements_not_loaded,
+            #         warning_with_tags(
+            #             "Unable to collect statement metrics because pg_stat_statements "
+            #             "extension is not loaded in database '%s'. "
+            #             "See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
+            #             "troubleshooting#%s for more details",
+            #             self._config.dbname,
+            #             DatabaseConfigurationError.pg_stat_statements_not_loaded.value,
+            #             host=self._check.resolved_hostname,
+            #             dbname=self._config.dbname,
+            #             code=DatabaseConfigurationError.pg_stat_statements_not_loaded.value,
+            #         ),
+            #     )
+            # elif isinstance(e, psycopg2.errors.UndefinedTable) and 'pg_stat_statements' in str(e.pgerror):
+            #     error_tag = "error:database-{}-pg_stat_statements_not_created".format(type(e).__name__)
+            #     self._check.record_warning(
+            #         DatabaseConfigurationError.pg_stat_statements_not_created,
+            #         warning_with_tags(
+            #             "Unable to collect statement metrics because pg_stat_statements is not created "
+            #             "in database '%s'. See https://docs.datadoghq.com/database_monitoring/setup_postgres/"
+            #             "troubleshooting#%s for more details",
+            #             self._config.dbname,
+            #             DatabaseConfigurationError.pg_stat_statements_not_created.value,
+            #             host=self._check.resolved_hostname,
+            #             dbname=self._config.dbname,
+            #             code=DatabaseConfigurationError.pg_stat_statements_not_created.value,
+            #         ),
+            #     )
+            # else:
+            #     self._check.warning(
+            #         warning_with_tags(
+            #             "Unable to collect statement metrics because of an error running queries "
+            #             "in database '%s'. See https://docs.datadoghq.com/database_monitoring/troubleshooting for "
+            #             "help: %s",
+            #             self._config.dbname,
+            #             str(e),
+            #             host=self._check.resolved_hostname,
+            #             dbname=self._config.dbname,
+            #         ),
+            #     )
+            #
+            # self._check.count(
+            #     "dd.postgres.statement_metrics.error",
+            #     1,
+            #     tags=self._tags + [error_tag] + self._check._get_debug_tags(),
+            #     hostname=self._check.resolved_hostname,
+            # )
 
             return []
 
@@ -373,23 +384,25 @@ class PostgresStatementMetrics(DBMAsyncJob):
 
     @tracked_method(agent_check_getter=agent_check_getter, track_result_length=True)
     def _collect_metrics_rows(self):
-        self._emit_pg_stat_statements_metrics()
+        # self._emit_pg_stat_statements_metrics()
         rows = self._load_pg_stat_statements()
+        rows = None
+        return []
 
-        rows = self._normalize_queries(rows)
-        if not rows:
-            return []
-
-        available_columns = set(rows[0].keys())
-        metric_columns = available_columns & PG_STAT_STATEMENTS_METRICS_COLUMNS
-        rows = self._state.compute_derivative_rows(rows, metric_columns, key=_row_key)
-        self._check.gauge(
-            'dd.postgres.queries.query_rows_raw',
-            len(rows),
-            tags=self._tags + self._check._get_debug_tags(),
-            hostname=self._check.resolved_hostname,
-        )
-        return rows
+        # rows = self._normalize_queries(rows)
+        # if not rows:
+        #     return []
+        #
+        # available_columns = set(rows[0].keys())
+        # metric_columns = available_columns & PG_STAT_STATEMENTS_METRICS_COLUMNS
+        # rows = self._state.compute_derivative_rows(rows, metric_columns, key=_row_key)
+        # self._check.gauge(
+        #     'dd.postgres.queries.query_rows_raw',
+        #     len(rows),
+        #     tags=self._tags + self._check._get_debug_tags(),
+        #     hostname=self._check.resolved_hostname,
+        # )
+        # return rows
 
     def _normalize_queries(self, rows):
         normalized_rows = []
