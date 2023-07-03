@@ -170,11 +170,12 @@ class PostgresStatementMetrics(DBMAsyncJob):
         query = STATEMENTS_QUERY.format(
             cols='*', pg_stat_statements_view=self._config.pg_stat_statements_view, extra_clauses="LIMIT 0", filters=""
         )
-        cursor = self._check._get_db(self._config.dbname).cursor()
-        self._execute_query(cursor, query, params=(self._config.dbname,))
-        col_names = [desc[0] for desc in cursor.description] if cursor.description else []
-        self._stat_column_cache = col_names
-        return col_names
+        with self._check._db_pool.get_connection(self._config.dbname, self.idle_connection_timeout) as conn:
+            with conn.cursor() as cursor:
+                self._execute_query(cursor, query, params=(self._config.dbname,))
+                col_names = [desc[0] for desc in cursor.description] if cursor.description else []
+                self._stat_column_cache = col_names
+                return col_names
 
     def run_job(self):
         # do not emit any dd.internal metrics for DBM specific check code
@@ -283,16 +284,19 @@ class PostgresStatementMetrics(DBMAsyncJob):
                     "pg_database.datname NOT ILIKE %s" for _ in self._config.ignore_databases
                 )
                 params = params + tuple(self._config.ignore_databases)
-            return self._execute_query(
-                self._check._get_db(self._config.dbname).cursor(cursor_factory=psycopg2.extras.DictCursor),
-                STATEMENTS_QUERY.format(
-                    cols=', '.join(query_columns),
-                    pg_stat_statements_view=self._config.pg_stat_statements_view,
-                    filters=filters,
-                    extra_clauses="",
-                ),
-                params=params,
-            )
+
+            with self._check._db_pool.get_connection(self._config.dbname, self._config.idle_connection_timeout) as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    return self._execute_query(
+                    cursor,
+                    STATEMENTS_QUERY.format(
+                        cols=', '.join(query_columns),
+                        pg_stat_statements_view=self._config.pg_stat_statements_view,
+                        filters=filters,
+                        extra_clauses="",
+                    ),
+                    params=params,
+                )
         except psycopg2.Error as e:
             error_tag = "error:database-{}".format(type(e).__name__)
 
@@ -355,10 +359,12 @@ class PostgresStatementMetrics(DBMAsyncJob):
         if self._check.version < V14:
             return
         try:
-            rows = self._execute_query(
-                self._check._get_db(self._config.dbname).cursor(cursor_factory=psycopg2.extras.DictCursor),
-                PG_STAT_STATEMENTS_DEALLOC,
-            )
+            with self._check._db_pool.get_connection(self._config.dbname, self._config.idle_connection_timeout) as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    rows = self._execute_query(
+                        cursor,
+                        PG_STAT_STATEMENTS_DEALLOC,
+                    )
             if rows:
                 dealloc = rows[0][0]
                 self._check.monotonic_count(
@@ -374,10 +380,12 @@ class PostgresStatementMetrics(DBMAsyncJob):
     def _emit_pg_stat_statements_metrics(self):
         query = PG_STAT_STATEMENTS_COUNT_QUERY_LT_9_4 if self._check.version < V9_4 else PG_STAT_STATEMENTS_COUNT_QUERY
         try:
-            rows = self._execute_query(
-                self._check._get_db(self._config.dbname).cursor(cursor_factory=psycopg2.extras.DictCursor),
-                query,
-            )
+            with self._check._db_pool.get_connection(self._config.dbname, self._config.idle_connection_timeout) as conn:
+                with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                    rows = self._execute_query(
+                        cursor,
+                        query,
+                    )
             count = 0
             if rows:
                 count = rows[0][0]

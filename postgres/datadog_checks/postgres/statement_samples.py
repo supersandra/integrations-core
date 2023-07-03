@@ -274,10 +274,10 @@ class PostgresStatementSamples(DBMAsyncJob):
             pg_stat_activity_view=self._config.pg_stat_activity_view, extra_filters=extra_filters
         )
         with self._conn_pool.get_connection(self._config.dbname, ttl_ms=self._conn_ttl_ms) as conn:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            self._log.debug("Running query [%s] %s", query, params)
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                self._log.debug("Running query [%s] %s", query, params)
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
 
         self._report_check_hist_metrics(start_time, len(rows), "get_active_connections")
         self._log.debug("Loaded %s rows from %s", len(rows), self._config.pg_stat_activity_view)
@@ -308,10 +308,10 @@ class PostgresStatementSamples(DBMAsyncJob):
             extra_filters=extra_filters,
         )
         with self._conn_pool.get_connection(self._config.dbname, ttl_ms=self._conn_ttl_ms) as conn:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            self._log.debug("Running query [%s] %s", query, params)
-            cursor.execute(query, params)
-            rows = cursor.fetchall()
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                self._log.debug("Running query [%s] %s", query, params)
+                cursor.execute(query, params)
+                rows = cursor.fetchall()
         self._report_check_hist_metrics(start_time, len(rows), "get_new_pg_stat_activity")
         self._log.debug("Loaded %s rows from %s", len(rows), self._config.pg_stat_activity_view)
         return rows
@@ -326,18 +326,18 @@ class PostgresStatementSamples(DBMAsyncJob):
     @tracked_method(agent_check_getter=agent_check_getter, track_result_length=True)
     def _get_available_activity_columns(self, all_expected_columns):
         with self._conn_pool.get_connection(self._config.dbname, ttl_ms=self._conn_ttl_ms) as conn:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            cursor.execute(
-                "select * from {pg_stat_activity_view} LIMIT 0".format(
-                    pg_stat_activity_view=self._config.pg_stat_activity_view
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                cursor.execute(
+                    "select * from {pg_stat_activity_view} LIMIT 0".format(
+                        pg_stat_activity_view=self._config.pg_stat_activity_view
+                    )
                 )
-            )
-            all_columns = {i[0] for i in cursor.description}
-            available_columns = [c for c in all_expected_columns if c in all_columns]
-            missing_columns = set(all_expected_columns) - set(available_columns)
-            if missing_columns:
-                self._log.debug("missing the following expected columns from pg_stat_activity: %s", missing_columns)
-            self._log.debug("found available pg_stat_activity columns: %s", available_columns)
+                all_columns = {i[0] for i in cursor.description}
+                available_columns = [c for c in all_expected_columns if c in all_columns]
+                missing_columns = set(all_expected_columns) - set(available_columns)
+                if missing_columns:
+                    self._log.debug("missing the following expected columns from pg_stat_activity: %s", missing_columns)
+                self._log.debug("found available pg_stat_activity columns: %s", available_columns)
         return available_columns
 
     def _filter_and_normalize_statement_rows(self, rows):
@@ -523,7 +523,9 @@ class PostgresStatementSamples(DBMAsyncJob):
     def _get_db_explain_setup_state(self, dbname):
         # type: (str) -> Tuple[Optional[DBExplainError], Optional[Exception]]
         try:
-            self._check._get_db(dbname)
+            with self._check._db_pool.get_connection(dbname, self._conn_ttl_ms) as conn:
+                with conn.cursor() as cursor:
+                    result = _run_explain(cursor, dbname, EXPLAIN_VALIDATION_QUERY, EXPLAIN_VALIDATION_QUERY)
         except psycopg2.OperationalError as e:
             self._log.warning(
                 "cannot collect execution plans due to failed DB connection to dbname=%s: %s", dbname, repr(e)
@@ -534,9 +536,6 @@ class PostgresStatementSamples(DBMAsyncJob):
                 "cannot collect execution plans due to a database error in dbname=%s: %s", dbname, repr(e)
             )
             return DBExplainError.database_error, e
-
-        try:
-            result = self._run_explain(dbname, EXPLAIN_VALIDATION_QUERY, EXPLAIN_VALIDATION_QUERY)
         except psycopg2.errors.InvalidSchemaName as e:
             self._log.warning("cannot collect execution plans due to invalid schema in dbname=%s: %s", dbname, repr(e))
             self._emit_run_explain_error(dbname, DBExplainError.invalid_schema, e)
@@ -585,26 +584,25 @@ class PostgresStatementSamples(DBMAsyncJob):
 
         return db_explain_error, err
 
-    def _run_explain(self, dbname, statement, obfuscated_statement):
+    def _run_explain(self, cursor, dbname, statement, obfuscated_statement):
         start_time = time.time()
-        with self._conn_pool.get_connection(dbname, ttl_ms=self._conn_ttl_ms) as conn:
-            cursor = conn.cursor()
-            self._log.debug("Running query on dbname=%s: %s(%s)", dbname, self._explain_function, obfuscated_statement)
-            cursor.execute(
-                """SELECT {explain_function}($stmt${statement}$stmt$)""".format(
-                    explain_function=self._explain_function, statement=statement
-                )
+        dbname = cursor.name
+        self._log.debug("Running query on dbname=%s: %s(%s)", dbname, self._explain_function, obfuscated_statement)
+        cursor.execute(
+            """SELECT {explain_function}($stmt${statement}$stmt$)""".format(
+                explain_function=self._explain_function, statement=statement
             )
-            result = cursor.fetchone()
-            self._check.histogram(
-                "dd.postgres.run_explain.time",
-                (time.time() - start_time) * 1000,
-                tags=self._dbtags(dbname) + self._check._get_debug_tags(),
-                hostname=self._check.resolved_hostname,
-            )
-            if not result or len(result) < 1 or len(result[0]) < 1:
-                return None
-            return result[0][0]
+        )
+        result = cursor.fetchone()
+        self._check.histogram(
+            "dd.postgres.run_explain.time",
+            (time.time() - start_time) * 1000,
+            tags=self._dbtags(dbname) + self._check._get_debug_tags(),
+            hostname=self._check.resolved_hostname,
+        )
+        if not result or len(result) < 1 or len(result[0]) < 1:
+            return None
+        return result[0][0]
 
     @tracked_method(agent_check_getter=agent_check_getter)
     def _run_and_track_explain(self, dbname, statement, obfuscated_statement, query_signature):
