@@ -41,7 +41,7 @@ def dbm_instance(pg_instance):
 )
 def test_explain_parameterized_queries(integration_check, dbm_instance, query, expected_explain_err_code):
     check = integration_check(dbm_instance)
-    check._connect()
+    # check._connect()
 
     check.check(dbm_instance)
     if check.version < V12:
@@ -76,7 +76,7 @@ def test_explain_parameterized_queries(integration_check, dbm_instance, query, e
 )
 def test_explain_parameterized_queries_generic_params(integration_check, dbm_instance, query, expected_generic_values):
     check = integration_check(dbm_instance)
-    check._connect()
+    # check._connect()
 
     check.check(dbm_instance)
     if check.version < V12:

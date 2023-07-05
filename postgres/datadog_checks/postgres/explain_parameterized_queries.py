@@ -157,12 +157,14 @@ class ExplainParameterizedQueries:
             )
 
     def _execute_query(self, dbname, query):
-        with self._check._get_db(dbname).cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            logger.debug('Executing query=[%s]', query)
-            cursor.execute(query)
+        with self._check._db_pool.get_connection(dbname, self._config.idle_connection_timeout) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                logger.debug('Executing query=[%s]', query)
+                cursor.execute(query)
 
     def _execute_query_and_fetch_rows(self, dbname, query):
-        with self._check._get_db(dbname).cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            logger.debug('Executing query=[%s] and fetching rows', query)
-            cursor.execute(query)
-            return cursor.fetchall()
+        with self._check._db_pool.get_connection(dbname, self._config.idle_connection_timeout) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+                logger.debug('Executing query=[%s] and fetching rows', query)
+                cursor.execute(query)
+                return cursor.fetchall()

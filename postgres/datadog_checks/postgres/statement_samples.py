@@ -525,7 +525,7 @@ class PostgresStatementSamples(DBMAsyncJob):
         try:
             with self._check._db_pool.get_connection(dbname, self._conn_ttl_ms) as conn:
                 with conn.cursor() as cursor:
-                    result = _run_explain(cursor, dbname, EXPLAIN_VALIDATION_QUERY, EXPLAIN_VALIDATION_QUERY)
+                    result = self._run_explain(cursor, dbname, EXPLAIN_VALIDATION_QUERY, EXPLAIN_VALIDATION_QUERY)
         except psycopg2.OperationalError as e:
             self._log.warning(
                 "cannot collect execution plans due to failed DB connection to dbname=%s: %s", dbname, repr(e)
@@ -586,7 +586,7 @@ class PostgresStatementSamples(DBMAsyncJob):
 
     def _run_explain(self, cursor, dbname, statement, obfuscated_statement):
         start_time = time.time()
-        dbname = cursor.name
+        # dbname = cursor.name
         self._log.debug("Running query on dbname=%s: %s(%s)", dbname, self._explain_function, obfuscated_statement)
         cursor.execute(
             """SELECT {explain_function}($stmt${statement}$stmt$)""".format(
@@ -645,7 +645,9 @@ class PostgresStatementSamples(DBMAsyncJob):
             return cached_error_response
 
         try:
-            return self._run_explain(dbname, statement, obfuscated_statement), None, None
+            with self._check._db_pool.get_connection(dbname, self._conn_ttl_ms) as conn:
+                with conn.cursor() as cursor:
+                    return self._run_explain(cursor, dbname, statement, obfuscated_statement), None, None
         except psycopg2.errors.UndefinedParameter as e:
             self._log.debug(
                 "Unable to collect execution plan, clients using the extended query protocol or prepared statements"

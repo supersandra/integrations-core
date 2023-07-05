@@ -25,6 +25,8 @@ from datadog_checks.postgres.relationsmanager import (
 )
 from datadog_checks.postgres.statement_samples import PostgresStatementSamples
 from datadog_checks.postgres.statements import PostgresStatementMetrics
+from datadog_checks.postgres.connections import MultiDatabaseConnectionPool
+
 
 from .config import PostgresConfig
 from .util import (
@@ -87,15 +89,16 @@ class PostgreSql(AgentCheck):
         self.pg_settings = {}
         self._warnings_by_code = {}
         self.metrics_cache = PostgresMetricsCache(self._config)
-        self.statement_metrics = PostgresStatementMetrics(self, self._config, shutdown_callback=self._close_db_pool)
-        self.statement_samples = PostgresStatementSamples(self, self._config, shutdown_callback=self._close_db_pool)
-        self.metadata_samples = PostgresMetadata(self, self._config, shutdown_callback=self._close_db_pool)
+        self.statement_metrics = PostgresStatementMetrics(self, self._config, shutdown_callback=None)
+        self.statement_samples = PostgresStatementSamples(self, self._config, shutdown_callback=None)
+        self.metadata_samples = PostgresMetadata(self, self._config, shutdown_callback=None)
         self._relations_manager = RelationsManager(self._config.relations, self._config.max_relations)
         self._clean_state()
         self.check_initializations.append(lambda: RelationsManager.validate_relations_config(self._config.relations))
         self.check_initializations.append(self.set_resolved_hostname_metadata)
         # map[dbname -> psycopg connection]
-        self._db_pool = MultiDatabaseConnectionPool(self._new_connection, self.config.get("max_connections", 30))
+        self._db_pool = MultiDatabaseConnectionPool(self._new_connection, self._config.max_connections)
+        self.connection_ttl = self._config.idle_connection_timeout
         self.tags_without_db = [t for t in copy.copy(self.tags) if not t.startswith("db:")]
 
         self._dynamic_queries = None
@@ -142,8 +145,8 @@ class PostgreSql(AgentCheck):
         )
 
     def execute_query_raw(self, query):
-        with self._db_pool.get_connection(self.dbname, self.idle_connection_timeout) as conn:
-            with conn.cursor as cursor:
+        with self._db_pool.get_connection(self._config.dbname, self.connection_ttl) as conn:
+            with conn.cursor() as cursor:
                 cursor.execute(query)
                 return cursor.fetchall()
 
@@ -234,8 +237,8 @@ class PostgreSql(AgentCheck):
         return list(service_check_tags)
 
     def _get_replication_role(self):
-        with self._db_pool.get_connection(self.dbname, self.idle_connection_timeout) as conn:
-            with conn.cursor as cursor:
+        with self._db_pool.get_connection(self._config.dbname, self.connection_ttl) as conn:
+            with conn.cursor() as cursor:
                 cursor.execute('SELECT pg_is_in_recovery();')
                 role = cursor.fetchone()[0]
                 # value fetched for role is of <type 'bool'>
@@ -287,7 +290,8 @@ class PostgreSql(AgentCheck):
     @property
     def version(self):
         if self._version is None:
-            raw_version = self._version_utils.get_raw_version(self.dbname)
+            with self._db_pool.get_connection(self._config.dbname, self.connection_ttl) as conn:
+                raw_version = self._version_utils.get_raw_version(conn)
             self._version = self._version_utils.parse_version(raw_version)
             self.set_metadata('version', raw_version)
         return self._version
@@ -295,7 +299,8 @@ class PostgreSql(AgentCheck):
     @property
     def is_aurora(self):
         if self._is_aurora is None:
-            self._is_aurora = self._version_utils.is_aurora(self.dbname)
+            with self._db_pool.get_connection(self._config.dbname, self.connection_ttl) as conn:
+                self._is_aurora = self._version_utils.is_aurora(conn)
         return self._is_aurora
 
     @property
@@ -330,7 +335,7 @@ class PostgreSql(AgentCheck):
         return agent_host_resolver(self._config.host)
 
     def rollback_db(self, dbname):
-        with self._db_pool.get_connection(dbname, self.idle_connection_timeout) as conn:
+        with self._db_pool.get_connection(dbname, self.connection_ttl) as conn:
             conn.rollback()
 
     def _run_query_scope(self, cursor, scope, is_custom_metrics, cols, descriptors):
@@ -358,7 +363,7 @@ class PostgreSql(AgentCheck):
         except psycopg2.errors.FeatureNotSupported as e:
             # This happens for example when trying to get replication metrics from readers in Aurora. Let's ignore it.
             log_func(e)
-            self.rollback_db(self.dbname)
+            self.rollback_db(self._config.dbname)
             self.log.debug("Disabling replication metrics")
             self._is_aurora = False
             self.metrics_cache.replication_metrics = {}
@@ -369,10 +374,10 @@ class PostgreSql(AgentCheck):
                 "A reattempt to identify the right version will happen on next agent run." % self._version
             )
             self._clean_state()
-            self.rollback_db(self.dbname)
+            self.rollback_db(self._config.dbname)
         except (psycopg2.ProgrammingError, psycopg2.errors.QueryCanceled) as e:
             log_func("Not all metrics may be available: %s" % str(e))
-            sself.rollback_db(self.dbname)
+            sself.rollback_db(self._config.dbname)
 
         if not results:
             return None
@@ -491,7 +496,7 @@ class PostgreSql(AgentCheck):
         if replication_stats_metrics:
             metric_scope.append(replication_stats_metrics)
 
-        with self._db_pool.get_connection(self.dbname, self.idle_connection_timeout) as conn:
+        with self._db_pool.get_connection(self._config.dbname, self.connection_ttl, persistent=True) as conn:
             with conn.cursor() as cursor:
                 results_len = self._query_scope(cursor, db_instance_metrics, instance_tags, False)
                 if results_len is not None:
@@ -606,14 +611,14 @@ class PostgreSql(AgentCheck):
                 self.log.error("custom query field `columns` is required for metric_prefix `%s`", metric_prefix)
                 continue
 
-            with self._db_pool.get_connection(self.dbname, self.idle_connection_timeout) as conn:
+            with self._db_pool.get_connection(self._config.dbname, self.connection_ttl) as conn:
                 with conn.cursor() as cursor:
                     try:
                         self.log.debug("Running query: %s", query)
                         cursor.execute(query)
                     except (psycopg2.ProgrammingError, psycopg2.errors.QueryCanceled) as e:
                         self.log.error("Error executing query for metric_prefix %s: %s", metric_prefix, str(e))
-                        self.rollback_db(self.dbname)
+                        self.rollback_db(self._config.dbname)
                         continue
 
                     for row in cursor:
@@ -739,7 +744,7 @@ class PostgreSql(AgentCheck):
             )
             try:
                 # commit to close the current query transaction
-                with self._db_pool.get_connection(self.dbname, self.idle_connection_timeout) as conn:
+                with self._db_pool.get_connection(self._config.dbname, self.connection_ttl) as conn:
                     conn.commit()
 
             except Exception as e:

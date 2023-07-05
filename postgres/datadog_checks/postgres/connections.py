@@ -116,7 +116,7 @@ class MultiDatabaseConnectionPool(object):
             return db
 
     @contextlib.contextmanager
-    def get_connection(self, dbname: str, ttl_ms: int, timeout: int = None):
+    def get_connection(self, dbname: str, ttl_ms: int, timeout: int = None, persistent: bool = False):
         """
         Grab a connection from the pool if the database is already connected.
         If max_conns is specified, and the database isn't already connected,
@@ -131,7 +131,8 @@ class MultiDatabaseConnectionPool(object):
         finally:
             with self._mu:
                 try:
-                    self._conns[dbname].active = False
+                    if not persistent:
+                        self._conns[dbname].active = False
                 except KeyError:
                     # if self._get_connection_raw hit an exception, self._conns[dbname] didn't get populated
                     pass

@@ -170,7 +170,7 @@ class PostgresStatementMetrics(DBMAsyncJob):
         query = STATEMENTS_QUERY.format(
             cols='*', pg_stat_statements_view=self._config.pg_stat_statements_view, extra_clauses="LIMIT 0", filters=""
         )
-        with self._check._db_pool.get_connection(self._config.dbname, self.idle_connection_timeout) as conn:
+        with self._check._db_pool.get_connection(self._config.dbname, self._config.idle_connection_timeout) as conn:
             with conn.cursor() as cursor:
                 self._execute_query(cursor, query, params=(self._config.dbname,))
                 col_names = [desc[0] for desc in cursor.description] if cursor.description else []
