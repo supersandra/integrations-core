@@ -485,13 +485,23 @@ class PostgreSql(AgentCheck):
         if not self.autodiscovery:
             return
 
-        start_time = time()
-        databases = self.autodiscovery.get_items()
-        for db in databases:
-            with self.autodiscovery_db_pool.get_connection(db, self._config.idle_connection_timeout) as conn:
+        def get_relations_job(dbname):
+            with self.autodiscovery_db_pool.get_connection(dbname, self._config.idle_connection_timeout) as conn:
                 with conn.cursor() as cursor:
                     for scope in relations_scopes:
-                        self._query_scope(cursor, scope, instance_tags, False, db)
+                        self._query_scope(cursor, scope, instance_tags, False, dbname)
+
+        start_time = time()
+        databases = self.autodiscovery.get_items()
+        db_threads = []
+        for db in databases:
+            thread = threading.Thread(target=get_relations_job, args=(db,))
+            db_threads.append(thread)
+            thread.start()
+
+        for index, thread in enumerate(db_threads):
+            thread.join()
+            
         elapsed_ms = (time() - start_time) * 1000
         self.histogram(
             "dd.postgres._collect_relations_autodiscovery.time",
