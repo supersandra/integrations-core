@@ -88,8 +88,8 @@ files:
         Note: `true` is an alias for `require`, and `false` is an alias for `disable`.
       value:
         type: string
-        display_default: false
-        example: "false"
+        display_default: "disable"
+        example: "disable"
     - name: ssl_root_cert
       description: |
         The path to the ssl root certificate.

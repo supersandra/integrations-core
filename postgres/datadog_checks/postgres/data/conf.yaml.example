@@ -63,7 +63,7 @@ instances:
     #   - rdsadmin
     #   - azure_maintenance
 
-    ## @param ssl - string - optional - default: false
+    ## @param ssl - string - optional - default: disable
     ## This option determines whether or not and with what priority a secure SSL TCP/IP connection
     ## is negotiated with the server. There are six modes:
     ## - `disable`: Only tries a non-SSL connection.
@@ -80,7 +80,7 @@ instances:
     ##
     ## Note: `true` is an alias for `require`, and `false` is an alias for `disable`.
     #
-    # ssl: 'false'
+    # ssl: disable
 
     ## @param ssl_root_cert - string - optional - default: false
     ## The path to the ssl root certificate.
