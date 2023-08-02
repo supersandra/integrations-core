@@ -300,6 +300,16 @@ AgentCheck.check()                          # no more instance argument for chec
 
         <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>_http</span>
 
+    <span class=nd>@property</span>
+    <span class=k>def</span> <span class=nf>diagnosis</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+        <span class=c1># type: () -&gt; Diagnosis</span>
+        <span class=sd>&quot;&quot;&quot;</span>
+<span class=sd>        A Diagnosis object to register explicit diagnostics and record diagnoses.</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=k>if</span> <span class=ow>not</span> <span class=nb>hasattr</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=s1>&#39;_diagnosis&#39;</span><span class=p>):</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>_diagnosis</span> <span class=o>=</span> <span class=n>Diagnosis</span><span class=p>(</span><span class=n>sanitize</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>sanitize</span><span class=p>)</span>
+        <span class=k>return</span> <span class=bp>self</span><span class=o>.</span><span class=n>_diagnosis</span>
+
     <span class=k>def</span> <span class=nf>get_tls_context</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>refresh</span><span class=o>=</span><span class=kc>False</span><span class=p>,</span> <span class=n>overrides</span><span class=o>=</span><span class=kc>None</span><span class=p>):</span>
         <span class=c1># type: (bool, Dict[AnyStr, Any]) -&gt; ssl.SSLContext</span>
         <span class=sd>&quot;&quot;&quot;</span>
@@ -923,6 +933,16 @@ AgentCheck.check()                          # no more instance argument for chec
         <span class=bp>self</span><span class=o>.</span><span class=n>warnings</span> <span class=o>=</span> <span class=p>[]</span>
         <span class=k>return</span> <span class=n>warnings</span>
 
+    <span class=k>def</span> <span class=nf>get_diagnoses</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+        <span class=c1># type: () -&gt; str</span>
+        <span class=sd>&quot;&quot;&quot;</span>
+<span class=sd>        Return the list of diagnosis as a JSON encoded string.</span>
+
+<span class=sd>        The agent calls this method to retrieve diagnostics from integrations. This method</span>
+<span class=sd>        runs explicit diagnostics if available.</span>
+<span class=sd>        &quot;&quot;&quot;</span>
+        <span class=k>return</span> <span class=n>json</span><span class=o>.</span><span class=n>dumps</span><span class=p>([</span><span class=n>d</span><span class=o>.</span><span class=n>_asdict</span><span class=p>()</span> <span class=k>for</span> <span class=n>d</span> <span class=ow>in</span> <span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>diagnosis</span><span class=o>.</span><span class=n>diagnoses</span> <span class=o>+</span> <span class=bp>self</span><span class=o>.</span><span class=n>diagnosis</span><span class=o>.</span><span class=n>run_explicit</span><span class=p>())])</span>
+
     <span class=k>def</span> <span class=nf>_get_requests_proxy</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
         <span class=c1># type: () -&gt; ProxySettings</span>
         <span class=c1># TODO: Remove with Agent 5</span>
@@ -1004,6 +1024,7 @@ AgentCheck.check()                          # no more instance argument for chec
     <span class=k>def</span> <span class=nf>run</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
         <span class=c1># type: () -&gt; str</span>
         <span class=k>try</span><span class=p>:</span>
+            <span class=bp>self</span><span class=o>.</span><span class=n>diagnosis</span><span class=o>.</span><span class=n>clear</span><span class=p>()</span>
             <span class=c1># Ignore check initializations if running in a separate process</span>
             <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;process_isolation&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;process_isolation&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>))):</span>
                 <span class=kn>from</span> <span class=nn>..utils.replay.execute</span> <span class=kn>import</span> <span class=n>run_with_isolation</span>
