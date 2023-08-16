@@ -1,232 +1,232 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://datadoghq.dev/integrations-core/</loc>
+         <loc>https://datadoghq.dev/integrations-core/index.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/e2e/</loc>
+         <loc>https://datadoghq.dev/integrations-core/e2e.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/setup/</loc>
+         <loc>https://datadoghq.dev/integrations-core/setup.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/testing/</loc>
+         <loc>https://datadoghq.dev/integrations-core/testing.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/architecture/ibm_i/</loc>
+         <loc>https://datadoghq.dev/integrations-core/architecture/ibm_i.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/architecture/snmp/</loc>
+         <loc>https://datadoghq.dev/integrations-core/architecture/snmp.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/architecture/vsphere/</loc>
+         <loc>https://datadoghq.dev/integrations-core/architecture/vsphere.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/architecture/win32_event_log/</loc>
+         <loc>https://datadoghq.dev/integrations-core/architecture/win32_event_log.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/about/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/about.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/api/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/api.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/basics/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/basics.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/databases/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/databases.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/http/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/http.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/metadata/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/metadata.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/openmetrics/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/openmetrics.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/base/tls/</loc>
+         <loc>https://datadoghq.dev/integrations-core/base/tls.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/ddev/about/</loc>
+         <loc>https://datadoghq.dev/integrations-core/ddev/about.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/ddev/cli/</loc>
+         <loc>https://datadoghq.dev/integrations-core/ddev/cli.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/ddev/configuration/</loc>
+         <loc>https://datadoghq.dev/integrations-core/ddev/configuration.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/ddev/plugins/</loc>
+         <loc>https://datadoghq.dev/integrations-core/ddev/plugins.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/ddev/test/</loc>
+         <loc>https://datadoghq.dev/integrations-core/ddev/test.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/faq/acknowledgements/</loc>
+         <loc>https://datadoghq.dev/integrations-core/faq/acknowledgements.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/faq/faq/</loc>
+         <loc>https://datadoghq.dev/integrations-core/faq/faq.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/guidelines/conventions/</loc>
+         <loc>https://datadoghq.dev/integrations-core/guidelines/conventions.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/guidelines/dashboards/</loc>
+         <loc>https://datadoghq.dev/integrations-core/guidelines/dashboards.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/guidelines/pr/</loc>
+         <loc>https://datadoghq.dev/integrations-core/guidelines/pr.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/guidelines/style/</loc>
+         <loc>https://datadoghq.dev/integrations-core/guidelines/style.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/legacy/prometheus/</loc>
+         <loc>https://datadoghq.dev/integrations-core/legacy/prometheus.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/cd/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/cd.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/config-models/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/config-models.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/config-specs/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/config-specs.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/docs/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/docs.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/status/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/status.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/ci/labels/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/ci/labels.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/ci/testing/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/ci/testing.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/meta/ci/validation/</loc>
+         <loc>https://datadoghq.dev/integrations-core/meta/ci/validation.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/process/integration-release/</loc>
+         <loc>https://datadoghq.dev/integrations-core/process/integration-release.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/memory-profiling/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/memory-profiling.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/jmx/integration/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/jmx/integration.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/jmx/tools/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/jmx/tools.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/how-to/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/how-to.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/introduction/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/introduction.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/profile-format/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/profile-format.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/profiles/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/profiles.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/sim-format/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/sim-format.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/tools/</loc>
+         <loc>https://datadoghq.dev/integrations-core/tutorials/snmp/tools.html</loc>
          <lastmod>2020-02-02</lastmod>
          <changefreq>daily</changefreq>
     </url>
