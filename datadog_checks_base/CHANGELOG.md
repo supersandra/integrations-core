@@ -9,7 +9,7 @@
 
 ***Added***:
 
-* Prevent `command already in progress` errors for pg integration ([#15489](https://github.com/DataDog/integrations-core/pull/15489))
+* Prevent `command already in progress` errors in the Postgres integration ([#15489](https://github.com/DataDog/integrations-core/pull/15489))
 
 ***Fixed***:
 

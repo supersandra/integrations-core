@@ -7,7 +7,7 @@
 * Add schema collection to Postgres integration ([#15484](https://github.com/DataDog/integrations-core/pull/15484))
 * Add support for sending `database_instance` metadata ([#15559](https://github.com/DataDog/integrations-core/pull/15559))
 * Update dependencies for Agent 7.48 ([#15585](https://github.com/DataDog/integrations-core/pull/15585))
-* Prevent `command already in progress` errors for pg integration ([#15489](https://github.com/DataDog/integrations-core/pull/15489))
+* Prevent `command already in progress` errors in the Postgres integration ([#15489](https://github.com/DataDog/integrations-core/pull/15489))
 
 ## 14.1.0 / 2023-08-10
 
