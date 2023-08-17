@@ -24,7 +24,6 @@
     }
     @get_identity_v3_auth_projects {
         method GET
-        header "X-Auth-Token" "demo_test"
         path /identity/v3/auth/projects
     }
     route @get_identity_v3_auth_projects {

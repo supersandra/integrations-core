@@ -47,6 +47,11 @@ CONFIG_NOVA_IRONIC_MICROVERSION_LATEST = {
     'ironic_microversion': '1.80',
 }
 
+CONFIG_SDK = {
+    'openstack_cloud_name': 'test_cloud',
+    'openstack_config_file_path': TEST_OPENSTACK_CONFIG_PATH,
+}
+
 KEYSTONE_INSTANCE = {
     'name': 'test_name',
     'keystone_server_url': 'http://10.0.2.15:5000',
@@ -493,34 +498,9 @@ class MockHttp:
             return self._defaults[subpath]
         elif path_and_args == '/identity/v3/auth/tokens':
             data = kwargs['json']
-            project_id = data.get('auth', {}).get('scope', {}).get('project', {}).get('id')
-            if project_id:
-                if self._defaults and f'{subpath}/project' in self._defaults:
-                    return self._defaults[f'{subpath}/project']
-                file_path = os.path.join(
-                    get_here(),
-                    'fixtures',
-                    self._host,
-                    microversion_path,
-                    *path_parts,
-                    f'project_{project_id}.json',
-                )
-                headers = {'X-Subject-Token': f'token_{project_id}'}
-            else:
-                domain_id = data.get('auth', {}).get('scope', {}).get('domain', {}).get('id')
-                if domain_id:
-                    if self._defaults and f'{subpath}/domain' in self._defaults:
-                        return self._defaults[f'{subpath}/domain']
-                    file_path = os.path.join(
-                        get_here(),
-                        'fixtures',
-                        self._host,
-                        microversion_path,
-                        *path_parts,
-                        f'domain_{domain_id}.json',
-                    )
-                    headers = {'X-Subject-Token': f'token_{domain_id}'}
-                else:
+            scope = data.get('auth', {}).get('scope', None)
+            if scope:
+                if isinstance(scope, str) and scope == "unscoped":
                     if self._defaults and f'{subpath}/unscoped' in self._defaults:
                         return self._defaults[f'{subpath}/unscoped']
                     file_path = os.path.join(
@@ -532,6 +512,20 @@ class MockHttp:
                         'unscoped.json',
                     )
                     headers = {'X-Subject-Token': 'token_test1234'}
+                elif isinstance(scope, dict):
+                    project_id = scope.get('project', {}).get('id')
+                    if project_id:
+                        if self._defaults and f'{subpath}/project' in self._defaults:
+                            return self._defaults[f'{subpath}/project']
+                        file_path = os.path.join(
+                            get_here(),
+                            'fixtures',
+                            self._host,
+                            microversion_path,
+                            *path_parts,
+                            f'project_{project_id}.json',
+                        )
+                        headers = {'X-Subject-Token': f'token_{project_id}'}
         else:
             file_path = os.path.join(
                 get_here(),

@@ -156,7 +156,7 @@ openstack.keystone.domains.count,gauge,,,,Number of domains,0,openstack_controll
 openstack.keystone.domains.enabled,gauge,,,,Number of domains enabled,0,openstack_controller,keystone domains enabled,
 openstack.keystone.groups.count,gauge,,,,Number of groups,0,openstack_controller,keystone groups,
 openstack.keystone.groups.users,gauge,,user,,"Number of group users, tagged by group.",0,openstack_controller,keystone groups users,
-openstack.keystone.limits,gauge,,,,"Override limit for a given resource",0,openstack_controller,keystone limits,
+openstack.keystone.limits.limit,gauge,,,,"Override limit for a given resource",0,openstack_controller,keystone limits,
 openstack.keystone.projects.count,gauge,,,,"Number of projects",0,openstack_controller,keystone projects,
 openstack.keystone.projects.enabled,gauge,,,,"Number of enabled projects",0,openstack_controller,keystone projects enabled,
 openstack.keystone.services.count,gauge,,service,,"Number of web services that the user can access through a URL",0,openstack_controller,keystone services,

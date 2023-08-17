@@ -15,3 +15,4 @@ def test_connect_ok(dd_agent_check):
     aggregator.assert_service_check('openstack.neutron.api.up', status=AgentCheck.OK)
     aggregator.assert_service_check('openstack.ironic.api.up', status=AgentCheck.OK)
     aggregator.assert_service_check('openstack.octavia.api.up', status=AgentCheck.OK)
+    raise AssertionError()

@@ -7,8 +7,8 @@ class BlockStorageRest:
         self.http = http
         self.endpoint = endpoint
 
-    def get_response_time(self, project_id):
-        endpoint = self.endpoint.replace(project_id, "")
+    def get_response_time(self):
+        endpoint = self.endpoint.rsplit('/', 1)[0]
         response = self.http.get('{}'.format(endpoint))
         response.raise_for_status()
         self.log.debug("response: %s", response.json())

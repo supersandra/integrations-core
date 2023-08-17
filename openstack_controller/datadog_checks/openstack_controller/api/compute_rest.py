@@ -4,7 +4,7 @@
 import re
 
 from datadog_checks.openstack_controller.metrics import (
-    NOVA_FLAVOR_METRICS,
+    NOVA_FLAVORS_METRICS,
     NOVA_HYPERVISOR_METRICS,
     NOVA_HYPERVISOR_METRICS_PREFIX,
     NOVA_LIMITS_METRICS,
@@ -29,52 +29,17 @@ class ComputeRest:
         self.log = log
         self.http = http
         self.endpoint = endpoint
-        self.log.debug("compute endpoint: %s", endpoint)
+        self.response_time_endpoint = self.endpoint
 
-    def get_response_time(self):
-        response = self.http.get('{}'.format(self.endpoint))
-        response.raise_for_status()
-        self.log.debug("response: %s", response.json())
-        return response.elapsed.total_seconds() * 1000
-
-    def get_limits(self):
-        response = self.http.get('{}/limits'.format(self.endpoint))
-        response.raise_for_status()
-        self.log.debug("response: %s", response.json())
-        return get_normalized_metrics(response.json(), NOVA_METRICS_PREFIX, NOVA_LIMITS_METRICS)
-
-    def get_quota_set(self, project_id):
-        response = self.http.get('{}/os-quota-sets/{}'.format(self.endpoint, project_id))
-        response.raise_for_status()
-        self.log.debug("response: %s", response.json())
-        quota_set = {
-            'id': response.json()['quota_set']['id'],
-            'metrics': get_normalized_metrics(response.json(), NOVA_METRICS_PREFIX, NOVA_QUOTA_SETS_METRICS),
-        }
-        return quota_set
-
-    def get_services(self):
-        response = self.http.get('{}/os-services'.format(self.endpoint))
-        response.raise_for_status()
-        self.log.debug("response: %s", response.json())
-        services = []
-        for service in response.json().get('services'):
-            service_name = service.get('binary').replace('-', '_')
-            is_down = service.get('state') is not None and service.get('state') == 'down'
-            is_enabled = service.get('status') == 'enabled'
-            is_up = not (is_down and is_enabled)
-            services.append(
-                {
-                    'name': service_name,
-                    'is_up': is_up,
-                    'zone': service.get('zone'),
-                    'host': service.get('host'),
-                    'status': service.get('status'),
-                    'id': service.get('id'),
-                    'state': service.get('state'),
-                }
-            )
-        return services
+    # def get_quota_set(self, project_id):
+    #     response = self.http.get('{}/os-quota-sets/{}'.format(self.endpoint, project_id))
+    #     response.raise_for_status()
+    #     self.log.debug("response: %s", response.json())
+    #     quota_set = {
+    #         'id': response.json()['quota_set']['id'],
+    #         'metrics': get_normalized_metrics(response.json(), NOVA_METRICS_PREFIX, NOVA_QUOTA_SETS_METRICS),
+    #     }
+    #     return quota_set
 
     def get_servers(self, project_id):
         response = self.http.get('{}/servers/detail?project_id={}'.format(self.endpoint, project_id))
@@ -121,18 +86,6 @@ class ComputeRest:
                     e,
                 )
         return server_metrics
-
-    def get_flavors(self):
-        response = self.http.get('{}/flavors/detail'.format(self.endpoint))
-        response.raise_for_status()
-        self.log.debug("response: %s", response.json())
-        flavor_metrics = {}
-        for flavor in response.json()['flavors']:
-            flavor_metrics[flavor['id']] = {
-                'name': flavor['name'],
-                'metrics': get_normalized_metrics(flavor, f'{NOVA_METRICS_PREFIX}.flavor', NOVA_FLAVOR_METRICS),
-            }
-        return flavor_metrics
 
     def _get_flavor_id(self, flavor_id):
         response = self.http.get('{}/flavors/{}'.format(self.endpoint, flavor_id))

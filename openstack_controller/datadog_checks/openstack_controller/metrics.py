@@ -7,8 +7,9 @@ from datadog_checks.base import AgentCheck
 
 HYPERVISOR_SERVICE_CHECK = {'up': AgentCheck.OK, 'down': AgentCheck.CRITICAL}
 
-KEYSTONE_SERVICE_CHECK = "openstack.keystone.api.up"
 KEYSTONE_METRICS_PREFIX = "openstack.keystone"
+KEYSTONE_SERVICE_CHECK = f"{KEYSTONE_METRICS_PREFIX}.api.up"
+KEYSTONE_RESPONSE_TIME = f"{KEYSTONE_METRICS_PREFIX}.response_time"
 
 KEYSTONE_DOMAINS_METRICS_PREFIX = f"{KEYSTONE_METRICS_PREFIX}.domains"
 KEYSTONE_DOMAINS_COUNT = f"{KEYSTONE_DOMAINS_METRICS_PREFIX}.count"
@@ -22,8 +23,32 @@ KEYSTONE_PROJECTS_METRICS = {
     f"{KEYSTONE_PROJECTS_METRICS_PREFIX}.enabled": {},
 }
 
-NOVA_SERVICE_CHECK = "openstack.nova.api.up"
+KEYSTONE_USERS_METRICS_PREFIX = f"{KEYSTONE_METRICS_PREFIX}.users"
+KEYSTONE_USERS_COUNT = f"{KEYSTONE_USERS_METRICS_PREFIX}.count"
+KEYSTONE_USERS_METRICS = {
+    f"{KEYSTONE_USERS_METRICS_PREFIX}.enabled": {},
+}
+
+KEYSTONE_GROUPS_METRICS_PREFIX = f"{KEYSTONE_METRICS_PREFIX}.groups"
+KEYSTONE_GROUPS_COUNT = f"{KEYSTONE_GROUPS_METRICS_PREFIX}.count"
+KEYSTONE_GROUPS_METRICS = {}
+
+KEYSTONE_SERVICES_METRICS_PREFIX = f"{KEYSTONE_METRICS_PREFIX}.services"
+KEYSTONE_SERVICES_COUNT = f"{KEYSTONE_SERVICES_METRICS_PREFIX}.count"
+KEYSTONE_SERVICES_METRICS = {
+    f"{KEYSTONE_SERVICES_METRICS_PREFIX}.enabled": {},
+}
+
+KEYSTONE_LIMITS_METRICS_PREFIX = f"{KEYSTONE_METRICS_PREFIX}.limits"
+KEYSTONE_LIMITS_COUNT = f"{KEYSTONE_LIMITS_METRICS_PREFIX}.count"
+KEYSTONE_LIMITS_METRICS = {
+    f"{KEYSTONE_LIMITS_METRICS_PREFIX}.limit": {},
+}
+
+
 NOVA_METRICS_PREFIX = "openstack.nova"
+NOVA_SERVICE_CHECK = f"{NOVA_METRICS_PREFIX}.api.up"
+NOVA_RESPONSE_TIME = f"{NOVA_METRICS_PREFIX}.response_time"
 
 NOVA_LIMITS_METRICS = {
     f"{NOVA_METRICS_PREFIX}.limits.absolute.max_total_instances": {},
@@ -45,6 +70,21 @@ NOVA_LIMITS_METRICS = {
     f"{NOVA_METRICS_PREFIX}.limits.absolute.total_floating_ips_used": {"max_version": "2.35"},
     f"{NOVA_METRICS_PREFIX}.limits.absolute.total_security_groups_used": {"max_version": "2.35"},
     f"{NOVA_METRICS_PREFIX}.limits.absolute.total_server_groups_used": {},
+}
+
+NOVA_SERVICES_METRICS_PREFIX = f"{NOVA_METRICS_PREFIX}.service"
+NOVA_SERVICES_METRICS = {
+    f"{NOVA_METRICS_PREFIX}.service.up": {},
+}
+
+NOVA_FLAVORS_METRICS_PREFIX = f"{NOVA_METRICS_PREFIX}.flavor"
+NOVA_FLAVORS_METRICS = {
+    f"{NOVA_FLAVORS_METRICS_PREFIX}.vcpus": {},
+    f"{NOVA_FLAVORS_METRICS_PREFIX}.ram": {},
+    f"{NOVA_FLAVORS_METRICS_PREFIX}.disk": {},
+    f"{NOVA_FLAVORS_METRICS_PREFIX}.os_flv_ext_data:ephemeral": {"optional": True},
+    f"{NOVA_FLAVORS_METRICS_PREFIX}.swap": {"optional": True},
+    f"{NOVA_FLAVORS_METRICS_PREFIX}.rxtx_factor": {"optional": True},
 }
 
 NOVA_QUOTA_SETS_METRICS = {
@@ -122,15 +162,6 @@ NOVA_SERVER_METRICS = {
     f"{NOVA_SERVER_METRICS_PREFIX}.num_disks": {"min_version": "2.48"},
 }
 
-NOVA_FLAVOR_METRICS = {
-    f"{NOVA_METRICS_PREFIX}.flavor.vcpus": {},
-    f"{NOVA_METRICS_PREFIX}.flavor.ram": {},
-    f"{NOVA_METRICS_PREFIX}.flavor.disk": {},
-    f"{NOVA_METRICS_PREFIX}.flavor.os_flv_ext_data:ephemeral": {"optional": True},
-    f"{NOVA_METRICS_PREFIX}.flavor.swap": {"optional": True},
-    f"{NOVA_METRICS_PREFIX}.flavor.rxtx_factor": {"optional": True},
-}
-
 NOVA_HYPERVISOR_METRICS_PREFIX = f"{NOVA_METRICS_PREFIX}.hypervisor"
 NOVA_HYPERVISOR_SERVICE_CHECK = f"{NOVA_HYPERVISOR_METRICS_PREFIX}.up"
 NOVA_HYPERVISOR_METRICS = {
@@ -152,6 +183,8 @@ NOVA_HYPERVISOR_METRICS = {
 }
 
 NEUTRON_METRICS_PREFIX = "openstack.neutron"
+NEUTRON_SERVICE_CHECK = f"{NEUTRON_METRICS_PREFIX}.api.up"
+NEUTRON_RESPONSE_TIME = f"{NEUTRON_METRICS_PREFIX}.response_time"
 
 NEUTRON_QUOTAS_METRICS_PREFIX = f"{NEUTRON_METRICS_PREFIX}.quotas"
 NEUTRON_QUOTAS_METRICS = {
@@ -178,11 +211,12 @@ def get_normalized_key(key):
     return re.sub(r'((?<=[a-z0-9])[A-Z]|(?!^)[A-Z](?=[a-z]))', r'_\1', key).lower().replace("-", "_")
 
 
-def get_normalized_metrics(metrics, prefix, reference_metrics):
+def get_normalized_metrics(metrics, prefix, reference_metrics, metrics_lambda=None, value_lambda=None):
     normalized_metrics = {}
     if isinstance(metrics, dict):
         for key, value in metrics.items():
-            long_metric_name = f'{prefix}.{get_normalized_key(key)}'
+            long_metric_name = f'{prefix}.{get_normalized_key(key if not metrics_lambda else metrics_lambda(key))}'
+            value = value if not value_lambda else value_lambda(key, value)
             referenced_metric = reference_metrics.get(long_metric_name)
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 if referenced_metric is not None:
@@ -192,10 +226,14 @@ def get_normalized_metrics(metrics, prefix, reference_metrics):
                     normalized_metrics[long_metric_name] = 1 if value else 0
             elif isinstance(value, list):
                 for item in value:
-                    normalized_metrics.update(get_normalized_metrics(item, long_metric_name, reference_metrics))
+                    normalized_metrics.update(
+                        get_normalized_metrics(item, long_metric_name, reference_metrics, metrics_lambda, value_lambda)
+                    )
             elif isinstance(value, type(None)):
-                if referenced_metric is not None and not referenced_metric.get("optional", False):
+                if referenced_metric is not None:
                     normalized_metrics[long_metric_name] = 0
             else:
-                normalized_metrics.update(get_normalized_metrics(value, long_metric_name, reference_metrics))
+                normalized_metrics.update(
+                    get_normalized_metrics(value, long_metric_name, reference_metrics, metrics_lambda, value_lambda)
+                )
     return normalized_metrics

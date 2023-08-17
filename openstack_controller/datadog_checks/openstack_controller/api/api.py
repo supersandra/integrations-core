@@ -7,10 +7,6 @@ from abc import ABC, abstractmethod
 
 class Api(ABC):
     @abstractmethod
-    def get_identity_response_time(self):
-        pass  # pragma: no cover
-
-    @abstractmethod
     def get_identity_domains(self):
         pass  # pragma: no cover
 
@@ -40,10 +36,6 @@ class Api(ABC):
 
     @abstractmethod
     def get_auth_projects(self):
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def get_load_balancer_response_time(self):
         pass  # pragma: no cover
 
     @abstractmethod
@@ -99,10 +91,6 @@ class Api(ABC):
         pass  # pragma: no cover
 
     @abstractmethod
-    def get_compute_response_time(self, project_id):
-        pass  # pragma: no cover
-
-    @abstractmethod
     def get_compute_limits(self):
         pass  # pragma: no cover
 
@@ -131,19 +119,11 @@ class Api(ABC):
         pass  # pragma: no cover
 
     @abstractmethod
-    def get_network_response_time(self):
-        pass  # pragma: no cover
-
-    @abstractmethod
     def get_network_quotas(self, project):
         pass  # pragma: no cover
 
     @abstractmethod
     def get_network_agents(self, project_id):
-        pass  # pragma: no cover
-
-    @abstractmethod
-    def get_baremetal_response_time(self):
         pass  # pragma: no cover
 
     @abstractmethod

@@ -16,6 +16,7 @@ class NetworkRest:
         self.log = log
         self.http = http
         self.endpoint = endpoint
+        self.response_time_endpoint = self.endpoint
 
     def get_response_time(self):
         response = self.http.get('{}'.format(self.endpoint))

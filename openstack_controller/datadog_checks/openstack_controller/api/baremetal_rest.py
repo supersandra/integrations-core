@@ -8,6 +8,7 @@ class BaremetalRest:
         self.log = log
         self.http = http
         self.endpoint = endpoint
+        self.response_time_endpoint = self.endpoint
         self.microversion = microversion
 
     def get_response_time(self):
