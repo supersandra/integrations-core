@@ -28,6 +28,8 @@ class VersionUtils(object):
     def get_raw_version(db):
         with db.connection() as conn:
             with conn.cursor() as cursor:
+                print(cursor)
+                print(cursor.execute)
                 cursor.execute('SHOW SERVER_VERSION;')
                 raw_version = cursor.fetchone()[0]
                 return raw_version

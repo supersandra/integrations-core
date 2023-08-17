@@ -110,16 +110,16 @@ def e2e_instance():
 
 @pytest.fixture()
 def mock_cursor_for_replica_stats():
-    with mock.patch('psycopg.connect') as connect:
-        cursor = mock.MagicMock()
+    with mock.patch('psycopg_pool.ConnectionPool.connection') as conn:
         data = deque()
-        connect.return_value = mock.MagicMock(cursor=mock.MagicMock(return_value=cursor))
 
         def cursor_execute(query, second_arg=""):
+            print(query)
             if "FROM pg_stat_replication" in query:
                 data.appendleft(['app1', 'streaming', 'async', '1.1.1.1', 12, 12, 12, 12])
                 data.appendleft(['app2', 'backup', 'sync', '1.1.1.1', 13, 13, 13, 13])
             elif query == 'SHOW SERVER_VERSION;':
+                print("SHOW SERVER_VERSION")
                 data.appendleft(['10.15'])
 
         def cursor_fetchall():
@@ -127,10 +127,17 @@ def mock_cursor_for_replica_stats():
                 yield data.pop()
 
         def cursor_fetchone():
+            print("fetchone")
             return data.pop()
 
-        cursor.__enter__().execute = cursor_execute
-        cursor.__enter__().fetchall = cursor_fetchall
-        cursor.__enter__().fetchone = cursor_fetchone
+        conn.__enter__().cursor().__enter__().execute = cursor_execute
+        conn.__enter__().cursor().__enter__().fetchall = cursor_fetchall
+        conn.__enter__().cursor().__enter__().fetchone = cursor_fetchone
+        print("set up mocks")
+        print(conn)
+        print(conn.__enter__().cursor().__enter__().execute)
+        print(conn.__enter__().cursor().__enter__().fetchall)
+        print(conn.__enter__().cursor().__enter__().fetchone)
+
 
         yield
