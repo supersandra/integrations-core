@@ -7,6 +7,10 @@
 * Dependency update for 7.48 ([#15585](https://github.com/DataDog/integrations-core/pull/15585))
 * Improve documentation of APIs ([#15582](https://github.com/DataDog/integrations-core/pull/15582))
 
+***Added***:
+
+* Prevent `command already in progress` errors for pg integration ([#15489](https://github.com/DataDog/integrations-core/pull/15489))
+
 ***Fixed***:
 
 * Bump cryptography to 41.0.3 ([#15517](https://github.com/DataDog/integrations-core/pull/15517))
