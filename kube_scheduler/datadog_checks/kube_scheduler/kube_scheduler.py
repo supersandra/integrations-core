@@ -113,6 +113,8 @@ DEFAULT_GO_METRICS = {
     'go_threads': 'threads',
     'process_max_fds': 'max_fds',
     'process_open_fds': 'open_fds',
+    'scheduler_goroutines': 'something_else',
+    'kubernetes_feature_enabled': 'feature_enabled',
 }
 
 IGNORE_METRICS = [
@@ -147,7 +149,7 @@ class KubeSchedulerCheck(KubeLeaderElectionMixin, OpenMetricsBaseCheck):
             instances,
             default_instances={
                 "kube_scheduler": {
-                    'prometheus_url': 'http://localhost:10251/metrics',
+                    'prometheus_url': 'http://localhost:10259/metrics',
                     'namespace': self.KUBE_SCHEDULER_NAMESPACE,
                     'metrics': [
                         DEFAULT_COUNTERS,
