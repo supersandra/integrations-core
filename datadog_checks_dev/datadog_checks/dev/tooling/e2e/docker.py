@@ -306,7 +306,7 @@ class DockerInterface(object):
             # Run API on a random port
             'DD_CMD_PORT': find_free_port(get_ip()),
             # Disable trace agent
-            'DD_APM_ENABLED': 'false',
+            'DD_APM_ENABLED': 'true',
             # Don't write .pyc, needed to fix this issue (only Python 2):
             # When reinstalling a package, .pyc are not cleaned correctly. The issue is fixed by not writing them
             # in the first place.
@@ -359,6 +359,11 @@ class DockerInterface(object):
             'run',
             # Keep it up
             '-d',
+            # Give CAP_PERFMON
+            '--cap-add',
+            'CAP_PERFMON',
+            '--cap-add',
+            'CAP_SYS_ADMIN',
             # Ensure consistent naming
             '--name',
             self.container_name,
