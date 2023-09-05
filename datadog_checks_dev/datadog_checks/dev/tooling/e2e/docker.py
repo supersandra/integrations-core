@@ -328,6 +328,7 @@ class DockerInterface(object):
         volumes = [
             # Mount the check directory
             f'{path_join(get_root(), self.check)}:{self.check_mount_dir}',
+            f'/Users/andrew.zhang/Desktop/tmp:{self.mount_dir}test',
         ]
 
         if not self.windows_container:
@@ -362,6 +363,8 @@ class DockerInterface(object):
             # Give CAP_PERFMON
             '--cap-add',
             'CAP_PERFMON',
+            '--cap-add',
+            'SYS_PTRACE',
             '--cap-add',
             'CAP_SYS_ADMIN',
             # Ensure consistent naming
