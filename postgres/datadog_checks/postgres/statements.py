@@ -43,6 +43,7 @@ SELECT {cols}
 PG_STAT_STATEMENTS_COUNT_QUERY = "SELECT COUNT(*) FROM pg_stat_statements(false)"
 PG_STAT_STATEMENTS_COUNT_QUERY_LT_9_4 = "SELECT COUNT(*) FROM pg_stat_statements"
 PG_STAT_STATEMENTS_DEALLOC = "SELECT dealloc FROM pg_stat_statements_info"
+DEFAULT_PG_STAT_STATEMENTS = 5000
 
 
 # Required columns for the check to run
@@ -211,6 +212,14 @@ class PostgresStatementMetrics(DBMAsyncJob):
             self._log.exception('Unable to collect statement metrics due to an error')
             return []
 
+    def _load_pg_statement_max_setting(self):
+        max_setting = self._check.pg_settings.get("pg_stat_statements.max")
+        if max_setting:
+            return max_setting
+        # if pg_settings is returning None, try reloading
+        self._check.load_pg_settings(self.db_pool)
+        return self._check.pg_settings.get("pg_stat_statements.max", default=DEFAULT_PG_STAT_STATEMENTS)
+
     @tracked_method(agent_check_getter=agent_check_getter, track_result_length=True)
     def _load_pg_stat_statements(self):
         try:
@@ -241,7 +250,7 @@ class PostgresStatementMetrics(DBMAsyncJob):
             if self._check.get_pg_settings().get("track_io_timing") != "on":
                 desired_columns -= PG_STAT_STATEMENTS_TIMING_COLUMNS
 
-            pg_stat_statements_max = int(self._check.pg_settings.get("pg_stat_statements.max"))
+            pg_stat_statements_max = int(self._load_pg_statement_max_setting())
             if pg_stat_statements_max > self._pg_stat_statements_max_warning_threshold:
                 self._check.record_warning(
                     DatabaseConfigurationError.high_pg_stat_statements_max,
