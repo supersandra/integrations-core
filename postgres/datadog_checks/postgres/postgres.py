@@ -266,21 +266,6 @@ class PostgreSql(AgentCheck):
         Cancels and waits for all threads to stop, and then
         closes any open db connections
         """
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            tasks = [
-                executor.submit(thread.cancel)
-                for thread in [self.statement_samples, self.statement_metrics, self.metadata_samples]
-            ]
-
-            try:
-                concurrent.futures.wait(tasks, timeout=self._config.min_collection_interval)
-            except concurrent.futures.TimeoutError:
-                self.log.warning(
-                    "Not all job loops were completed in time when cancelling the main check. "
-                    "Proceeding with the check cancellation. "
-                    "Some unexpected errors related to closed connections may occur after this message."
-                )
-
         self._close_db_pool()
         self._check_cancelled = True
 
