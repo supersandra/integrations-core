@@ -92,7 +92,7 @@ class MultiDatabaseConnectionPool(object):
         timeout: int = None,
         key_prefix: str = None,
         min_pool_size: int = 1,
-        max_pool_size: int = None,
+        max_pool_size: int = 2,
         startup_fn: Callable[[ConnectionPool], None] = None,
         persistent: bool = False,
     ) -> ConnectionPool:
