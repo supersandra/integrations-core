@@ -520,7 +520,7 @@ class PostgresStatementSamples(DBMAsyncJob):
     def _get_db_explain_setup_state(self, dbname):
         # type: (str) -> Tuple[Optional[DBExplainError], Optional[Exception]]
         try:
-            with self.db_pool.get_connection(dbname, self._conn_ttl_ms):
+            with self.db_pool.get_connection(dbname, self._conn_ttl_ms, source="_get_db_explain_setup_state"):
                 pass
         except psycopg.OperationalError as e:
             self._log.warning(
@@ -585,7 +585,7 @@ class PostgresStatementSamples(DBMAsyncJob):
 
     def _run_explain(self, dbname, statement, obfuscated_statement):
         start_time = time.time()
-        with self.db_pool.get_connection(dbname, ttl_ms=self._conn_ttl_ms) as conn:
+        with self.db_pool.get_connection(dbname, ttl_ms=self._conn_ttl_ms, source="_run_explain") as conn:
             with conn.cursor() as cursor:
                 self._log.debug(
                     "Running query on dbname=%s: %s(%s)", dbname, self._explain_function, obfuscated_statement

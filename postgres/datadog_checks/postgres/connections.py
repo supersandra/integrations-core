@@ -100,6 +100,7 @@ class MultiDatabaseConnectionPool(object):
         Pass a function to startup_func if there is an action needed with the connection
         when re-establishing it.
         """
+        start_time = time.time()
         start = datetime.datetime.now()
         self.prune_connections()
         with self._mu:
@@ -131,10 +132,16 @@ class MultiDatabaseConnectionPool(object):
                 last_accessed=datetime.datetime.now(),
                 persistent=persistent,
             )
+            self._check.histogram(
+                "dd.postgres._get_connection_pool.time",
+                (time.time() - start_time) * 1000,
+                tags=["db:" + self._config.dbname],
+                hostname=self._check.resolved_hostname,
+                )
             return db_pool
 
     @contextlib.contextmanager
-    def get_connection(self, dbname: str, ttl_ms: int, timeout: int = None, persistent: bool = False):
+    def get_connection(self, dbname: str, ttl_ms: int, timeout: int = None, persistent: bool = False, source: str = None):
         """
         Grab a connection from the pool if the database is already connected.
         If max_conns is specified, and the database isn't already connected,
@@ -142,15 +149,28 @@ class MultiDatabaseConnectionPool(object):
         Blocks until a connection can be added to the pool,
         and optionally takes a timeout in seconds.
         """
+        start_time = time.time()
         with self._mu:
             pool = self._get_connection_pool(dbname=dbname, ttl_ms=ttl_ms, timeout=timeout, persistent=persistent)
             db = pool.getconn()
+            self._check.histogram(
+                "dd.postgres.get_connection.time",
+                (time.time() - start_time) * 1000,
+                tags=["db:" + dbname, "source:" + source],
+                hostname=self._check.resolved_hostname,
+                )
         try:
             yield db
         finally:
             with self._mu:
                 try:
                     pool.putconn(db)
+                    self._check.histogram(
+                        "dd.postgres.get_connection.total_time",
+                        (time.time() - start_time) * 1000,
+                        tags=["db:" + dbname, "source:" + source],
+                        hostname=self._check.resolved_hostname,
+                        )
                     if not self._conns[dbname].persistent:
                         self._conns[dbname].active = False
                 except KeyError:
@@ -165,12 +185,18 @@ class MultiDatabaseConnectionPool(object):
         ttl 1000ms, but the query it's running takes 5000ms, this function will still try to close
         the connection mid-query.
         """
+        start_time = time.time()
         with self._mu:
             now = datetime.datetime.now()
             for conn_name, conn in list(self._conns.items()):
                 if conn.deadline < now and not conn.active and not conn.persistent:
                     self._stats.connection_pruned += 1
                     self._terminate_connection_unsafe(conn_name)
+        self._check.histogram(
+            "dd.postgres.prune_connections.time",
+            (time.time() - start_time) * 1000,
+            hostname=self._check.resolved_hostname,
+            )
 
     def close_all_connections(self):
         """
@@ -178,11 +204,17 @@ class MultiDatabaseConnectionPool(object):
         :param timeout:
         :return:
         """
+        start_time = time.time()
         success = True
         with self._mu:
             for dbname in list(self._conns):
                 if not self._terminate_connection_unsafe(dbname):
                     success = False
+            self._check.histogram(
+                "dd.postgres.close_all_connections.time",
+                (time.time() - start_time) * 1000,
+                hostname=self._check.resolved_hostname,
+                )
         return success
 
     def evict_lru(self) -> str:
@@ -190,12 +222,18 @@ class MultiDatabaseConnectionPool(object):
         Evict and close the inactive connection which was least recently used.
         Return the dbname connection that was evicted or None if we couldn't evict a connection.
         """
+        start_time = time.time()
         with self._mu:
             sorted_conns = sorted(self._conns.items(), key=lambda i: i[1].last_accessed)
             for name, conn_info in sorted_conns:
                 if not conn_info.active and not conn_info.persistent:
                     self._terminate_connection_unsafe(name)
                     return name
+            self._check.histogram(
+                "dd.postgres.evict_lru.time",
+                (time.time() - start_time) * 1000,
+                hostname=self._check.resolved_hostname,
+                )
 
             # Could not evict a candidate; return None
             return None
@@ -203,7 +241,7 @@ class MultiDatabaseConnectionPool(object):
     def _terminate_connection_unsafe(self, dbname: str) -> bool:
         if dbname not in self._conns:
             return True
-
+        start_time = time.time()
         db = self._conns.pop(dbname).connection
         try:
             # pyscopg3 will IMMEDIATELY close the connection when calling close().
@@ -211,6 +249,12 @@ class MultiDatabaseConnectionPool(object):
             # if timeout is 0 or negative, psycopg will not wait for worker threads to terminate
             db.close(timeout=0)
             self._stats.connection_closed += 1
+            self._check.histogram(
+                "dd.postgres._terminate_connection_unsafe.time",
+                (time.time() - start_time) * 1000,
+                tags=["db:" + dbname],
+                hostname=self._check.resolved_hostname,
+                )
         except Exception:
             self._stats.connection_closed_failed += 1
             self._log.exception("failed to close DB connection for db=%s", dbname)
@@ -224,10 +268,17 @@ class MultiDatabaseConnectionPool(object):
         Is meant to be shared across multiple threads, and opens a preconfigured max number of connections.
         :return: a psycopg connection
         """
+        start_time = time.time()
         conn = self._get_connection_pool(
             dbname=self._config.dbname,
             ttl_ms=self._config.idle_connection_timeout,
             max_pool_size=max_pool_conn_size,
             persistent=True,
         )
+        self._check.histogram(
+            "dd.postgres.get_main_db_pool.time",
+            (time.time() - start_time) * 1000,
+            tags=["db:" + self._config.dbname],
+            hostname=self._check.resolved_hostname,
+            )
         return conn

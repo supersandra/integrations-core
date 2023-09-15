@@ -75,7 +75,7 @@ class ExplainParameterizedQueries:
             return None
 
         query_signature = compute_sql_signature(obfuscated_statement)
-        with self._check.db_pool.get_connection(dbname, self._check._config.idle_connection_timeout) as conn:
+        with self._check.db_pool.get_connection(dbname, self._check._config.idle_connection_timeout, source="explain_statement_param") as conn:
             self._set_plan_cache_mode(conn)
 
             if not self._create_prepared_statement(conn, statement, obfuscated_statement, query_signature):
