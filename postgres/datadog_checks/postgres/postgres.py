@@ -281,7 +281,7 @@ class PostgreSql(AgentCheck):
                     "Proceeding with the check cancellation. "
                     "Some unexpected errors related to closed connections may occur after this message."
                 )
-        self._check.histogram(
+        self.histogram(
             "dd.postgres.cancel.time",
             (time() - start_time) * 1000,
             hostname=self._check.resolved_hostname,
