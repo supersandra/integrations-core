@@ -266,6 +266,7 @@ class PostgreSql(AgentCheck):
         Cancels and waits for all threads to stop, and then
         closes any open db connections
         """
+        start_time = time()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             tasks = [
                 executor.submit(thread.cancel)
@@ -280,6 +281,11 @@ class PostgreSql(AgentCheck):
                     "Proceeding with the check cancellation. "
                     "Some unexpected errors related to closed connections may occur after this message."
                 )
+        self._check.histogram(
+            "dd.postgres.cancel.time",
+            (time() - start_time) * 1000,
+            hostname=self._check.resolved_hostname,
+            )
         self._close_db_pool()
         self._check_cancelled = True
 
