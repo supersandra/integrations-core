@@ -699,7 +699,7 @@ class PostgreSql(AgentCheck):
         args.update(conn_args)
         return args
 
-    def _new_connection(self, dbname: str, min_pool_size: int = 2, max_pool_size: int = None):
+    def _new_connection(self, dbname: str, min_pool_size: int = 1, max_pool_size: int = 2):
         # required for autocommit as well as using params in queries
         args = self._new_connection_info(dbname)
         pool = ConnectionPool(
