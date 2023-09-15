@@ -90,6 +90,7 @@ class MultiDatabaseConnectionPool(object):
         dbname: str,
         ttl_ms: int,
         timeout: int = None,
+        key_prefix: str = None,
         min_pool_size: int = 1,
         max_pool_size: int = None,
         startup_fn: Callable[[ConnectionPool], None] = None,
@@ -103,8 +104,11 @@ class MultiDatabaseConnectionPool(object):
         start_time = time.time()
         start = datetime.datetime.now()
         self.prune_connections()
+        conn_key = dbname
+        if key_prefix:
+            conn_key = "{}-{}".format(key_prefix, dbname)
         with self._mu:
-            conn = self._conns.pop(dbname, ConnectionInfo(None, None, None, None, None))
+            conn = self._conns.pop(conn_key, ConnectionInfo(None, None, None, None, None))
             db_pool = conn.connection
             if db_pool is None or db_pool.closed:
                 if self.max_conns is not None:
@@ -125,7 +129,7 @@ class MultiDatabaseConnectionPool(object):
                 persistent = conn.persistent
 
             deadline = datetime.datetime.now() + datetime.timedelta(milliseconds=ttl_ms)
-            self._conns[dbname] = ConnectionInfo(
+            self._conns[conn_key] = ConnectionInfo(
                 connection=db_pool,
                 deadline=deadline,
                 active=True,
@@ -135,7 +139,7 @@ class MultiDatabaseConnectionPool(object):
             self._check.histogram(
                 "dd.postgres._get_connection_pool.time",
                 (time.time() - start_time) * 1000,
-                tags=["db:" + self._config.dbname],
+                tags=["db:" + conn_key],
                 hostname=self._check.resolved_hostname,
                 )
             return db_pool
@@ -272,6 +276,7 @@ class MultiDatabaseConnectionPool(object):
         conn = self._get_connection_pool(
             dbname=self._config.dbname,
             ttl_ms=self._config.idle_connection_timeout,
+            key_prefix="main",
             max_pool_size=max_pool_conn_size,
             persistent=True,
         )
