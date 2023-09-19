@@ -72,7 +72,6 @@ class MultiDatabaseConnectionPool(object):
         self._config = check._config
         self.max_conns: int = max_conns
         self._stats = self.Stats()
-        self._mu = threading.RLock()
         self._conns: Dict[str, ConnectionInfo] = {}
 
         if hasattr(inspect, 'signature'):
@@ -106,36 +105,35 @@ class MultiDatabaseConnectionPool(object):
             timeout = self._config.connection_timeout
         start = datetime.datetime.now()
         self.prune_connections()
-        with self._mu:
-            conn = self._conns.pop(dbname, ConnectionInfo(None, None, None, None, None))
-            db_pool = conn.connection
-            if db_pool is None or db_pool.closed:
-                if self.max_conns is not None:
-                    # try to free space until we succeed
-                    while len(self._conns) >= self.max_conns:
-                        self.prune_connections()
-                        self.evict_lru()
-                        if timeout is not None and (datetime.datetime.now() - start).total_seconds() > timeout:
-                            raise ConnectionPoolFullError(self.max_conns, timeout)
-                        time.sleep(0.01)
-                        continue
-                self._stats.connection_opened += 1
-                db_pool = self.connect_fn(dbname, min_pool_size, max_pool_size)
-                if startup_fn:
-                    startup_fn(db_pool)
-            else:
-                # if already in pool, retain persistence status
-                persistent = conn.persistent
+        conn = self._conns.pop(dbname, ConnectionInfo(None, None, None, None, None))
+        db_pool = conn.connection
+        if db_pool is None or db_pool.closed:
+            if self.max_conns is not None:
+                # try to free space until we succeed
+                while len(self._conns) >= self.max_conns:
+                    self.prune_connections()
+                    self.evict_lru()
+                    if timeout is not None and (datetime.datetime.now() - start).total_seconds() > timeout:
+                        raise ConnectionPoolFullError(self.max_conns, timeout)
+                    time.sleep(0.01)
+                    continue
+            self._stats.connection_opened += 1
+            db_pool = self.connect_fn(dbname, min_pool_size, max_pool_size)
+            if startup_fn:
+                startup_fn(db_pool)
+        else:
+            # if already in pool, retain persistence status
+            persistent = conn.persistent
 
-            deadline = datetime.datetime.now() + datetime.timedelta(milliseconds=ttl_ms)
-            self._conns[dbname] = ConnectionInfo(
-                connection=db_pool,
-                deadline=deadline,
-                active=True,
-                last_accessed=datetime.datetime.now(),
-                persistent=persistent,
-            )
-            return db_pool
+        deadline = datetime.datetime.now() + datetime.timedelta(milliseconds=ttl_ms)
+        self._conns[dbname] = ConnectionInfo(
+            connection=db_pool,
+            deadline=deadline,
+            active=True,
+            last_accessed=datetime.datetime.now(),
+            persistent=persistent,
+        )
+        return db_pool
 
     @contextlib.contextmanager
     def get_connection(self, dbname: str, ttl_ms: int, timeout: int = None, persistent: bool = False):
@@ -146,20 +144,14 @@ class MultiDatabaseConnectionPool(object):
         Blocks until a connection can be added to the pool,
         and optionally takes a timeout in seconds.
         """
-        with self._mu:
-            pool = self._get_connection_pool(dbname=dbname, ttl_ms=ttl_ms, timeout=timeout, persistent=persistent)
-            db = pool.getconn()
+        pool = self._get_connection_pool(dbname=dbname, ttl_ms=ttl_ms, timeout=timeout, persistent=persistent)
         try:
+            db = pool.getconn()
             yield db
         finally:
-            with self._mu:
-                try:
-                    pool.putconn(db)
-                    if not self._conns[dbname].persistent:
-                        self._conns[dbname].active = False
-                except KeyError:
-                    # if self._get_connection_raw hit an exception, self._conns[conn_name] didn't get populated
-                    pass
+            pool.putconn(db)
+            if not self._conns[dbname].persistent:
+                self._conns[dbname].active = False
 
     def prune_connections(self):
         """
@@ -169,12 +161,11 @@ class MultiDatabaseConnectionPool(object):
         ttl 1000ms, but the query it's running takes 5000ms, this function will still try to close
         the connection mid-query.
         """
-        with self._mu:
-            now = datetime.datetime.now()
-            for conn_name, conn in list(self._conns.items()):
-                if conn.deadline < now and not conn.active and not conn.persistent:
-                    self._stats.connection_pruned += 1
-                    self._terminate_connection_unsafe(conn_name)
+        now = datetime.datetime.now()
+        for conn_name, conn in list(self._conns.items()):
+            if conn.deadline < now and not conn.active and not conn.persistent:
+                self._stats.connection_pruned += 1
+                self._terminate_connection_unsafe(conn_name)
 
     def close_all_connections(self):
         """
@@ -183,10 +174,9 @@ class MultiDatabaseConnectionPool(object):
         :return:
         """
         success = True
-        with self._mu:
-            for dbname in list(self._conns):
-                if not self._terminate_connection_unsafe(dbname):
-                    success = False
+        for dbname in list(self._conns):
+            if not self._terminate_connection_unsafe(dbname):
+                success = False
         return success
 
     def evict_lru(self) -> str:
@@ -194,12 +184,11 @@ class MultiDatabaseConnectionPool(object):
         Evict and close the inactive connection which was least recently used.
         Return the dbname connection that was evicted or None if we couldn't evict a connection.
         """
-        with self._mu:
-            sorted_conns = sorted(self._conns.items(), key=lambda i: i[1].last_accessed)
-            for name, conn_info in sorted_conns:
-                if not conn_info.active and not conn_info.persistent:
-                    self._terminate_connection_unsafe(name)
-                    return name
+        sorted_conns = sorted(self._conns.items(), key=lambda i: i[1].last_accessed)
+        for name, conn_info in sorted_conns:
+            if not conn_info.active and not conn_info.persistent:
+                self._terminate_connection_unsafe(name)
+                return name
 
             # Could not evict a candidate; return None
             return None

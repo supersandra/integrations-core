@@ -6,7 +6,8 @@ import copy
 import re
 import time
 from enum import Enum
-from typing import Dict, Optional, Tuple  # noqa: F401
+from typing import Dict, Optional, Tuple
+from datadog_checks.postgres.connections import MultiDatabaseConnectionPool  # noqa: F401
 
 import psycopg
 from cachetools import TTLCache
@@ -187,7 +188,7 @@ class PostgresStatementSamples(DBMAsyncJob):
                 'collection_interval', DEFAULT_ACTIVITY_COLLECTION_INTERVAL
             )
 
-        self.db_pool = check.db_pool
+        self.db_pool = MultiDatabaseConnectionPool(check, check._new_connection, config.max_connections)
 
         super(PostgresStatementSamples, self).__init__(
             check,
@@ -861,6 +862,13 @@ class PostgresStatementSamples(DBMAsyncJob):
         return int(
             self._check.get_pg_settings().get("track_activity_query_size", TRACK_ACTIVITY_QUERY_SIZE_UNKNOWN_VALUE)
         )
+    
+    def _close_db_pool(self):
+        self.db_pool.close_all_connections()
+
+    def cancel(self):
+        super(PostgresStatementSamples, self).cancel()
+        self._close_db_pool()
 
     @staticmethod
     def _get_truncation_state(track_activity_query_size, statement):
