@@ -1129,149 +1129,166 @@ AgentCheck.check()                          # no more instance argument for chec
 <span class=linenos data-linenos="1218 "></span>                    <span class=kn>from</span> <span class=nn>..utils.agent.debug</span> <span class=kn>import</span> <span class=n>enter_pdb</span>
 <span class=linenos data-linenos="1219 "></span>
 <span class=linenos data-linenos="1220 "></span>                    <span class=n>enter_pdb</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>,</span> <span class=n>line</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>[</span><span class=s1>&#39;set_breakpoint&#39;</span><span class=p>],</span> <span class=n>args</span><span class=o>=</span><span class=p>(</span><span class=n>instance</span><span class=p>,))</span>
-<span class=linenos data-linenos="1221 "></span>                <span class=k>elif</span> <span class=s1>&#39;profile_memory&#39;</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span> <span class=ow>or</span> <span class=p>(</span>
-<span class=linenos data-linenos="1222 "></span>                    <span class=n>datadog_agent</span><span class=o>.</span><span class=n>tracemalloc_enabled</span><span class=p>()</span> <span class=ow>and</span> <span class=n>should_profile_memory</span><span class=p>(</span><span class=n>datadog_agent</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
-<span class=linenos data-linenos="1223 "></span>                <span class=p>):</span>
-<span class=linenos data-linenos="1224 "></span>                    <span class=kn>from</span> <span class=nn>..utils.agent.memory</span> <span class=kn>import</span> <span class=n>profile_memory</span>
+<span class=linenos data-linenos="1221 "></span>                <span class=k>elif</span> <span class=bp>self</span><span class=o>.</span><span class=n>should_profile_memory</span><span class=p>():</span>
+<span class=linenos data-linenos="1222 "></span>                    <span class=bp>self</span><span class=o>.</span><span class=n>profile_memory</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=n>args</span><span class=o>=</span><span class=p>(</span><span class=n>instance</span><span class=p>,))</span>
+<span class=linenos data-linenos="1223 "></span>                <span class=k>else</span><span class=p>:</span>
+<span class=linenos data-linenos="1224 "></span>                    <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>(</span><span class=n>instance</span><span class=p>)</span>
 <span class=linenos data-linenos="1225 "></span>
-<span class=linenos data-linenos="1226 "></span>                    <span class=n>metrics</span> <span class=o>=</span> <span class=n>profile_memory</span><span class=p>(</span>
-<span class=linenos data-linenos="1227 "></span>                        <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=n>namespaces</span><span class=o>=</span><span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>),</span> <span class=n>args</span><span class=o>=</span><span class=p>(</span><span class=n>instance</span><span class=p>,)</span>
-<span class=linenos data-linenos="1228 "></span>                    <span class=p>)</span>
-<span class=linenos data-linenos="1229 "></span>
-<span class=linenos data-linenos="1230 "></span>                    <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_debug_metric_tags</span><span class=p>()</span>
-<span class=linenos data-linenos="1231 "></span>                    <span class=n>tags</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;__memory_profiling_tags&#39;</span><span class=p>,</span> <span class=p>[]))</span>
-<span class=linenos data-linenos="1232 "></span>                    <span class=k>for</span> <span class=n>m</span> <span class=ow>in</span> <span class=n>metrics</span><span class=p>:</span>
-<span class=linenos data-linenos="1233 "></span>                        <span class=bp>self</span><span class=o>.</span><span class=n>gauge</span><span class=p>(</span><span class=n>m</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>m</span><span class=o>.</span><span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
-<span class=linenos data-linenos="1234 "></span>                <span class=k>else</span><span class=p>:</span>
-<span class=linenos data-linenos="1235 "></span>                    <span class=bp>self</span><span class=o>.</span><span class=n>check</span><span class=p>(</span><span class=n>instance</span><span class=p>)</span>
-<span class=linenos data-linenos="1236 "></span>
-<span class=linenos data-linenos="1237 "></span>            <span class=n>error_report</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
-<span class=linenos data-linenos="1238 "></span>        <span class=k>except</span> <span class=ne>Exception</span> <span class=k>as</span> <span class=n>e</span><span class=p>:</span>
-<span class=linenos data-linenos="1239 "></span>            <span class=n>message</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>sanitize</span><span class=p>(</span><span class=nb>str</span><span class=p>(</span><span class=n>e</span><span class=p>))</span>
-<span class=linenos data-linenos="1240 "></span>            <span class=n>tb</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>sanitize</span><span class=p>(</span><span class=n>traceback</span><span class=o>.</span><span class=n>format_exc</span><span class=p>())</span>
-<span class=linenos data-linenos="1241 "></span>            <span class=n>error_report</span> <span class=o>=</span> <span class=n>json</span><span class=o>.</span><span class=n>dumps</span><span class=p>([{</span><span class=s1>&#39;message&#39;</span><span class=p>:</span> <span class=n>message</span><span class=p>,</span> <span class=s1>&#39;traceback&#39;</span><span class=p>:</span> <span class=n>tb</span><span class=p>}])</span>
-<span class=linenos data-linenos="1242 "></span>        <span class=k>finally</span><span class=p>:</span>
-<span class=linenos data-linenos="1243 "></span>            <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=p>:</span>
-<span class=linenos data-linenos="1244 "></span>                <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>debug_metrics</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;metric_contexts&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)):</span>
-<span class=linenos data-linenos="1245 "></span>                    <span class=n>debug_metrics</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=o>.</span><span class=n>get_debug_metrics</span><span class=p>()</span>
+<span class=linenos data-linenos="1226 "></span>            <span class=n>error_report</span> <span class=o>=</span> <span class=s1>&#39;&#39;</span>
+<span class=linenos data-linenos="1227 "></span>        <span class=k>except</span> <span class=ne>Exception</span> <span class=k>as</span> <span class=n>e</span><span class=p>:</span>
+<span class=linenos data-linenos="1228 "></span>            <span class=n>message</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>sanitize</span><span class=p>(</span><span class=nb>str</span><span class=p>(</span><span class=n>e</span><span class=p>))</span>
+<span class=linenos data-linenos="1229 "></span>            <span class=n>tb</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>sanitize</span><span class=p>(</span><span class=n>traceback</span><span class=o>.</span><span class=n>format_exc</span><span class=p>())</span>
+<span class=linenos data-linenos="1230 "></span>            <span class=n>error_report</span> <span class=o>=</span> <span class=n>json</span><span class=o>.</span><span class=n>dumps</span><span class=p>([{</span><span class=s1>&#39;message&#39;</span><span class=p>:</span> <span class=n>message</span><span class=p>,</span> <span class=s1>&#39;traceback&#39;</span><span class=p>:</span> <span class=n>tb</span><span class=p>}])</span>
+<span class=linenos data-linenos="1231 "></span>        <span class=k>finally</span><span class=p>:</span>
+<span class=linenos data-linenos="1232 "></span>            <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=p>:</span>
+<span class=linenos data-linenos="1233 "></span>                <span class=k>if</span> <span class=n>is_affirmative</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>debug_metrics</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;metric_contexts&#39;</span><span class=p>,</span> <span class=kc>False</span><span class=p>)):</span>
+<span class=linenos data-linenos="1234 "></span>                    <span class=n>debug_metrics</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=o>.</span><span class=n>get_debug_metrics</span><span class=p>()</span>
+<span class=linenos data-linenos="1235 "></span>
+<span class=linenos data-linenos="1236 "></span>                    <span class=c1># Reset so we can actually submit the metrics</span>
+<span class=linenos data-linenos="1237 "></span>                    <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=o>.</span><span class=n>reset</span><span class=p>()</span>
+<span class=linenos data-linenos="1238 "></span>
+<span class=linenos data-linenos="1239 "></span>                    <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_debug_metric_tags</span><span class=p>()</span>
+<span class=linenos data-linenos="1240 "></span>                    <span class=k>for</span> <span class=n>metric_name</span><span class=p>,</span> <span class=n>value</span> <span class=ow>in</span> <span class=n>debug_metrics</span><span class=p>:</span>
+<span class=linenos data-linenos="1241 "></span>                        <span class=bp>self</span><span class=o>.</span><span class=n>gauge</span><span class=p>(</span><span class=n>metric_name</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
+<span class=linenos data-linenos="1242 "></span>
+<span class=linenos data-linenos="1243 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=o>.</span><span class=n>reset</span><span class=p>()</span>
+<span class=linenos data-linenos="1244 "></span>
+<span class=linenos data-linenos="1245 "></span>        <span class=k>return</span> <span class=n>error_report</span>
 <span class=linenos data-linenos="1246 "></span>
-<span class=linenos data-linenos="1247 "></span>                    <span class=c1># Reset so we can actually submit the metrics</span>
-<span class=linenos data-linenos="1248 "></span>                    <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=o>.</span><span class=n>reset</span><span class=p>()</span>
-<span class=linenos data-linenos="1249 "></span>
-<span class=linenos data-linenos="1250 "></span>                    <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_debug_metric_tags</span><span class=p>()</span>
-<span class=linenos data-linenos="1251 "></span>                    <span class=k>for</span> <span class=n>metric_name</span><span class=p>,</span> <span class=n>value</span> <span class=ow>in</span> <span class=n>debug_metrics</span><span class=p>:</span>
-<span class=linenos data-linenos="1252 "></span>                        <span class=bp>self</span><span class=o>.</span><span class=n>gauge</span><span class=p>(</span><span class=n>metric_name</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
-<span class=linenos data-linenos="1253 "></span>
-<span class=linenos data-linenos="1254 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>metric_limiter</span><span class=o>.</span><span class=n>reset</span><span class=p>()</span>
-<span class=linenos data-linenos="1255 "></span>
-<span class=linenos data-linenos="1256 "></span>        <span class=k>return</span> <span class=n>error_report</span>
-<span class=linenos data-linenos="1257 "></span>
-<span class=linenos data-linenos="1258 "></span>    <span class=k>def</span> <span class=nf>event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>event</span><span class=p>):</span>
-<span class=linenos data-linenos="1259 "></span>        <span class=c1># type: (Event) -&gt; None</span>
-<span class=linenos data-linenos="1260 "></span><span class=w>        </span><span class=sd>&quot;&quot;&quot;Send an event.</span>
-<span class=linenos data-linenos="1261 "></span>
-<span class=linenos data-linenos="1262 "></span><span class=sd>        An event is a dictionary with the following keys and data types:</span>
-<span class=linenos data-linenos="1263 "></span>
-<span class=linenos data-linenos="1264 "></span><span class=sd>        ```python</span>
-<span class=linenos data-linenos="1265 "></span><span class=sd>        {</span>
-<span class=linenos data-linenos="1266 "></span><span class=sd>            &quot;timestamp&quot;: int,        # the epoch timestamp for the event</span>
-<span class=linenos data-linenos="1267 "></span><span class=sd>            &quot;event_type&quot;: str,       # the event name</span>
-<span class=linenos data-linenos="1268 "></span><span class=sd>            &quot;api_key&quot;: str,          # the api key for your account</span>
-<span class=linenos data-linenos="1269 "></span><span class=sd>            &quot;msg_title&quot;: str,        # the title of the event</span>
-<span class=linenos data-linenos="1270 "></span><span class=sd>            &quot;msg_text&quot;: str,         # the text body of the event</span>
-<span class=linenos data-linenos="1271 "></span><span class=sd>            &quot;aggregation_key&quot;: str,  # a key to use for aggregating events</span>
-<span class=linenos data-linenos="1272 "></span><span class=sd>            &quot;alert_type&quot;: str,       # (optional) one of (&#39;error&#39;, &#39;warning&#39;, &#39;success&#39;, &#39;info&#39;), defaults to &#39;info&#39;</span>
-<span class=linenos data-linenos="1273 "></span><span class=sd>            &quot;source_type_name&quot;: str, # (optional) the source type name</span>
-<span class=linenos data-linenos="1274 "></span><span class=sd>            &quot;host&quot;: str,             # (optional) the name of the host</span>
-<span class=linenos data-linenos="1275 "></span><span class=sd>            &quot;tags&quot;: list,            # (optional) a list of tags to associate with this event</span>
-<span class=linenos data-linenos="1276 "></span><span class=sd>            &quot;priority&quot;: str,         # (optional) specifies the priority of the event (&quot;normal&quot; or &quot;low&quot;)</span>
-<span class=linenos data-linenos="1277 "></span><span class=sd>        }</span>
-<span class=linenos data-linenos="1278 "></span><span class=sd>        ```</span>
-<span class=linenos data-linenos="1279 "></span>
-<span class=linenos data-linenos="1280 "></span><span class=sd>        Parameters:</span>
-<span class=linenos data-linenos="1281 "></span>
-<span class=linenos data-linenos="1282 "></span><span class=sd>            event (dict[str, Any]):</span>
-<span class=linenos data-linenos="1283 "></span><span class=sd>                the event to be sent</span>
-<span class=linenos data-linenos="1284 "></span><span class=sd>        &quot;&quot;&quot;</span>
-<span class=linenos data-linenos="1285 "></span>        <span class=c1># Enforce types of some fields, considerably facilitates handling in go bindings downstream</span>
-<span class=linenos data-linenos="1286 "></span>        <span class=k>for</span> <span class=n>key</span><span class=p>,</span> <span class=n>value</span> <span class=ow>in</span> <span class=n>iteritems</span><span class=p>(</span><span class=n>event</span><span class=p>):</span>
-<span class=linenos data-linenos="1287 "></span>            <span class=k>if</span> <span class=ow>not</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>value</span><span class=p>,</span> <span class=p>(</span><span class=n>text_type</span><span class=p>,</span> <span class=n>binary_type</span><span class=p>)):</span>
-<span class=linenos data-linenos="1288 "></span>                <span class=k>continue</span>
-<span class=linenos data-linenos="1289 "></span>
-<span class=linenos data-linenos="1290 "></span>            <span class=k>try</span><span class=p>:</span>
-<span class=linenos data-linenos="1291 "></span>                <span class=n>event</span><span class=p>[</span><span class=n>key</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>value</span><span class=p>)</span>  <span class=c1># type: ignore</span>
-<span class=linenos data-linenos="1292 "></span>                <span class=c1># ^ Mypy complains about dynamic key assignment -- arguably for good reason.</span>
-<span class=linenos data-linenos="1293 "></span>                <span class=c1># Ideally we should convert this to a dict literal so that submitted events only include known keys.</span>
-<span class=linenos data-linenos="1294 "></span>            <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
-<span class=linenos data-linenos="1295 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=s1>&#39;Encoding error with field `</span><span class=si>%s</span><span class=s1>`, cannot submit event&#39;</span><span class=p>,</span> <span class=n>key</span><span class=p>)</span>
-<span class=linenos data-linenos="1296 "></span>                <span class=k>return</span>
-<span class=linenos data-linenos="1297 "></span>
-<span class=linenos data-linenos="1298 "></span>        <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;tags&#39;</span><span class=p>):</span>
-<span class=linenos data-linenos="1299 "></span>            <span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_normalize_tags_type</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>])</span>
-<span class=linenos data-linenos="1300 "></span>        <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;timestamp&#39;</span><span class=p>):</span>
-<span class=linenos data-linenos="1301 "></span>            <span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=nb>int</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>])</span>
-<span class=linenos data-linenos="1302 "></span>        <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>):</span>
-<span class=linenos data-linenos="1303 "></span>            <span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>])</span>
-<span class=linenos data-linenos="1304 "></span>
-<span class=linenos data-linenos="1305 "></span>        <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>:</span>
-<span class=linenos data-linenos="1306 "></span>            <span class=n>event</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=s1>&#39;source_type_name&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>)</span>
-<span class=linenos data-linenos="1307 "></span>
-<span class=linenos data-linenos="1308 "></span>        <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>event</span><span class=p>)</span>
-<span class=linenos data-linenos="1309 "></span>
-<span class=linenos data-linenos="1310 "></span>    <span class=k>def</span> <span class=nf>_normalize_tags_type</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>device_name</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>metric_name</span><span class=o>=</span><span class=kc>None</span><span class=p>):</span>
-<span class=linenos data-linenos="1311 "></span>        <span class=c1># type: (Sequence[Union[None, str, bytes]], str, str) -&gt; List[str]</span>
-<span class=linenos data-linenos="1312 "></span><span class=w>        </span><span class=sd>&quot;&quot;&quot;</span>
-<span class=linenos data-linenos="1313 "></span><span class=sd>        Normalize tags contents and type:</span>
-<span class=linenos data-linenos="1314 "></span><span class=sd>        - append `device_name` as `device:` tag</span>
-<span class=linenos data-linenos="1315 "></span><span class=sd>        - normalize tags type</span>
-<span class=linenos data-linenos="1316 "></span><span class=sd>        - doesn&#39;t mutate the passed list, returns a new list</span>
-<span class=linenos data-linenos="1317 "></span><span class=sd>        &quot;&quot;&quot;</span>
-<span class=linenos data-linenos="1318 "></span>        <span class=n>normalized_tags</span> <span class=o>=</span> <span class=p>[]</span>
-<span class=linenos data-linenos="1319 "></span>
-<span class=linenos data-linenos="1320 "></span>        <span class=k>if</span> <span class=n>device_name</span><span class=p>:</span>
-<span class=linenos data-linenos="1321 "></span>            <span class=bp>self</span><span class=o>.</span><span class=n>_log_deprecation</span><span class=p>(</span><span class=s1>&#39;device_name&#39;</span><span class=p>)</span>
-<span class=linenos data-linenos="1322 "></span>            <span class=k>try</span><span class=p>:</span>
-<span class=linenos data-linenos="1323 "></span>                <span class=n>normalized_tags</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=s1>&#39;device:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=n>to_native_string</span><span class=p>(</span><span class=n>device_name</span><span class=p>)))</span>
-<span class=linenos data-linenos="1324 "></span>            <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
-<span class=linenos data-linenos="1325 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span>
-<span class=linenos data-linenos="1326 "></span>                    <span class=s1>&#39;Encoding error with device name `</span><span class=si>%r</span><span class=s1>` for metric `</span><span class=si>%r</span><span class=s1>`, ignoring tag&#39;</span><span class=p>,</span> <span class=n>device_name</span><span class=p>,</span> <span class=n>metric_name</span>
-<span class=linenos data-linenos="1327 "></span>                <span class=p>)</span>
-<span class=linenos data-linenos="1328 "></span>
-<span class=linenos data-linenos="1329 "></span>        <span class=k>for</span> <span class=n>tag</span> <span class=ow>in</span> <span class=n>tags</span><span class=p>:</span>
-<span class=linenos data-linenos="1330 "></span>            <span class=k>if</span> <span class=n>tag</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
-<span class=linenos data-linenos="1331 "></span>                <span class=k>continue</span>
-<span class=linenos data-linenos="1332 "></span>            <span class=k>try</span><span class=p>:</span>
-<span class=linenos data-linenos="1333 "></span>                <span class=n>tag</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>tag</span><span class=p>)</span>
-<span class=linenos data-linenos="1334 "></span>            <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
-<span class=linenos data-linenos="1335 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=s1>&#39;Encoding error with tag `</span><span class=si>%s</span><span class=s1>` for metric `</span><span class=si>%s</span><span class=s1>`, ignoring tag&#39;</span><span class=p>,</span> <span class=n>tag</span><span class=p>,</span> <span class=n>metric_name</span><span class=p>)</span>
-<span class=linenos data-linenos="1336 "></span>                <span class=k>continue</span>
-<span class=linenos data-linenos="1337 "></span>            <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>disable_generic_tags</span><span class=p>:</span>
-<span class=linenos data-linenos="1338 "></span>                <span class=n>normalized_tags</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>degeneralise_tag</span><span class=p>(</span><span class=n>tag</span><span class=p>))</span>
-<span class=linenos data-linenos="1339 "></span>            <span class=k>else</span><span class=p>:</span>
-<span class=linenos data-linenos="1340 "></span>                <span class=n>normalized_tags</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>tag</span><span class=p>)</span>
-<span class=linenos data-linenos="1341 "></span>        <span class=k>return</span> <span class=n>normalized_tags</span>
-<span class=linenos data-linenos="1342 "></span>
-<span class=linenos data-linenos="1343 "></span>    <span class=k>def</span> <span class=nf>degeneralise_tag</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>tag</span><span class=p>):</span>
-<span class=linenos data-linenos="1344 "></span>        <span class=n>split_tag</span> <span class=o>=</span> <span class=n>tag</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>)</span>
-<span class=linenos data-linenos="1345 "></span>        <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=n>split_tag</span><span class=p>)</span> <span class=o>&gt;</span> <span class=mi>1</span><span class=p>:</span>
-<span class=linenos data-linenos="1346 "></span>            <span class=n>tag_name</span><span class=p>,</span> <span class=n>value</span> <span class=o>=</span> <span class=n>split_tag</span>
-<span class=linenos data-linenos="1347 "></span>        <span class=k>else</span><span class=p>:</span>
-<span class=linenos data-linenos="1348 "></span>            <span class=n>tag_name</span> <span class=o>=</span> <span class=n>tag</span>
-<span class=linenos data-linenos="1349 "></span>            <span class=n>value</span> <span class=o>=</span> <span class=kc>None</span>
-<span class=linenos data-linenos="1350 "></span>
-<span class=linenos data-linenos="1351 "></span>        <span class=k>if</span> <span class=n>tag_name</span> <span class=ow>in</span> <span class=n>GENERIC_TAGS</span><span class=p>:</span>
-<span class=linenos data-linenos="1352 "></span>            <span class=n>new_name</span> <span class=o>=</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>_</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>tag_name</span><span class=p>)</span>
-<span class=linenos data-linenos="1353 "></span>            <span class=k>if</span> <span class=n>value</span><span class=p>:</span>
-<span class=linenos data-linenos="1354 "></span>                <span class=k>return</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=n>new_name</span><span class=p>,</span> <span class=n>value</span><span class=p>)</span>
-<span class=linenos data-linenos="1355 "></span>            <span class=k>else</span><span class=p>:</span>
-<span class=linenos data-linenos="1356 "></span>                <span class=k>return</span> <span class=n>new_name</span>
-<span class=linenos data-linenos="1357 "></span>        <span class=k>else</span><span class=p>:</span>
-<span class=linenos data-linenos="1358 "></span>            <span class=k>return</span> <span class=n>tag</span>
+<span class=linenos data-linenos="1247 "></span>    <span class=k>def</span> <span class=nf>event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>event</span><span class=p>):</span>
+<span class=linenos data-linenos="1248 "></span>        <span class=c1># type: (Event) -&gt; None</span>
+<span class=linenos data-linenos="1249 "></span><span class=w>        </span><span class=sd>&quot;&quot;&quot;Send an event.</span>
+<span class=linenos data-linenos="1250 "></span>
+<span class=linenos data-linenos="1251 "></span><span class=sd>        An event is a dictionary with the following keys and data types:</span>
+<span class=linenos data-linenos="1252 "></span>
+<span class=linenos data-linenos="1253 "></span><span class=sd>        ```python</span>
+<span class=linenos data-linenos="1254 "></span><span class=sd>        {</span>
+<span class=linenos data-linenos="1255 "></span><span class=sd>            &quot;timestamp&quot;: int,        # the epoch timestamp for the event</span>
+<span class=linenos data-linenos="1256 "></span><span class=sd>            &quot;event_type&quot;: str,       # the event name</span>
+<span class=linenos data-linenos="1257 "></span><span class=sd>            &quot;api_key&quot;: str,          # the api key for your account</span>
+<span class=linenos data-linenos="1258 "></span><span class=sd>            &quot;msg_title&quot;: str,        # the title of the event</span>
+<span class=linenos data-linenos="1259 "></span><span class=sd>            &quot;msg_text&quot;: str,         # the text body of the event</span>
+<span class=linenos data-linenos="1260 "></span><span class=sd>            &quot;aggregation_key&quot;: str,  # a key to use for aggregating events</span>
+<span class=linenos data-linenos="1261 "></span><span class=sd>            &quot;alert_type&quot;: str,       # (optional) one of (&#39;error&#39;, &#39;warning&#39;, &#39;success&#39;, &#39;info&#39;), defaults to &#39;info&#39;</span>
+<span class=linenos data-linenos="1262 "></span><span class=sd>            &quot;source_type_name&quot;: str, # (optional) the source type name</span>
+<span class=linenos data-linenos="1263 "></span><span class=sd>            &quot;host&quot;: str,             # (optional) the name of the host</span>
+<span class=linenos data-linenos="1264 "></span><span class=sd>            &quot;tags&quot;: list,            # (optional) a list of tags to associate with this event</span>
+<span class=linenos data-linenos="1265 "></span><span class=sd>            &quot;priority&quot;: str,         # (optional) specifies the priority of the event (&quot;normal&quot; or &quot;low&quot;)</span>
+<span class=linenos data-linenos="1266 "></span><span class=sd>        }</span>
+<span class=linenos data-linenos="1267 "></span><span class=sd>        ```</span>
+<span class=linenos data-linenos="1268 "></span>
+<span class=linenos data-linenos="1269 "></span><span class=sd>        Parameters:</span>
+<span class=linenos data-linenos="1270 "></span>
+<span class=linenos data-linenos="1271 "></span><span class=sd>            event (dict[str, Any]):</span>
+<span class=linenos data-linenos="1272 "></span><span class=sd>                the event to be sent</span>
+<span class=linenos data-linenos="1273 "></span><span class=sd>        &quot;&quot;&quot;</span>
+<span class=linenos data-linenos="1274 "></span>        <span class=c1># Enforce types of some fields, considerably facilitates handling in go bindings downstream</span>
+<span class=linenos data-linenos="1275 "></span>        <span class=k>for</span> <span class=n>key</span><span class=p>,</span> <span class=n>value</span> <span class=ow>in</span> <span class=n>iteritems</span><span class=p>(</span><span class=n>event</span><span class=p>):</span>
+<span class=linenos data-linenos="1276 "></span>            <span class=k>if</span> <span class=ow>not</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>value</span><span class=p>,</span> <span class=p>(</span><span class=n>text_type</span><span class=p>,</span> <span class=n>binary_type</span><span class=p>)):</span>
+<span class=linenos data-linenos="1277 "></span>                <span class=k>continue</span>
+<span class=linenos data-linenos="1278 "></span>
+<span class=linenos data-linenos="1279 "></span>            <span class=k>try</span><span class=p>:</span>
+<span class=linenos data-linenos="1280 "></span>                <span class=n>event</span><span class=p>[</span><span class=n>key</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>value</span><span class=p>)</span>  <span class=c1># type: ignore</span>
+<span class=linenos data-linenos="1281 "></span>                <span class=c1># ^ Mypy complains about dynamic key assignment -- arguably for good reason.</span>
+<span class=linenos data-linenos="1282 "></span>                <span class=c1># Ideally we should convert this to a dict literal so that submitted events only include known keys.</span>
+<span class=linenos data-linenos="1283 "></span>            <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
+<span class=linenos data-linenos="1284 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=s1>&#39;Encoding error with field `</span><span class=si>%s</span><span class=s1>`, cannot submit event&#39;</span><span class=p>,</span> <span class=n>key</span><span class=p>)</span>
+<span class=linenos data-linenos="1285 "></span>                <span class=k>return</span>
+<span class=linenos data-linenos="1286 "></span>
+<span class=linenos data-linenos="1287 "></span>        <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;tags&#39;</span><span class=p>):</span>
+<span class=linenos data-linenos="1288 "></span>            <span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_normalize_tags_type</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>])</span>
+<span class=linenos data-linenos="1289 "></span>        <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;timestamp&#39;</span><span class=p>):</span>
+<span class=linenos data-linenos="1290 "></span>            <span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=nb>int</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>])</span>
+<span class=linenos data-linenos="1291 "></span>        <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>):</span>
+<span class=linenos data-linenos="1292 "></span>            <span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>])</span>
+<span class=linenos data-linenos="1293 "></span>
+<span class=linenos data-linenos="1294 "></span>        <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>:</span>
+<span class=linenos data-linenos="1295 "></span>            <span class=n>event</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=s1>&#39;source_type_name&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>)</span>
+<span class=linenos data-linenos="1296 "></span>
+<span class=linenos data-linenos="1297 "></span>        <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>event</span><span class=p>)</span>
+<span class=linenos data-linenos="1298 "></span>
+<span class=linenos data-linenos="1299 "></span>    <span class=k>def</span> <span class=nf>_normalize_tags_type</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>tags</span><span class=p>,</span> <span class=n>device_name</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>metric_name</span><span class=o>=</span><span class=kc>None</span><span class=p>):</span>
+<span class=linenos data-linenos="1300 "></span>        <span class=c1># type: (Sequence[Union[None, str, bytes]], str, str) -&gt; List[str]</span>
+<span class=linenos data-linenos="1301 "></span><span class=w>        </span><span class=sd>&quot;&quot;&quot;</span>
+<span class=linenos data-linenos="1302 "></span><span class=sd>        Normalize tags contents and type:</span>
+<span class=linenos data-linenos="1303 "></span><span class=sd>        - append `device_name` as `device:` tag</span>
+<span class=linenos data-linenos="1304 "></span><span class=sd>        - normalize tags type</span>
+<span class=linenos data-linenos="1305 "></span><span class=sd>        - doesn&#39;t mutate the passed list, returns a new list</span>
+<span class=linenos data-linenos="1306 "></span><span class=sd>        &quot;&quot;&quot;</span>
+<span class=linenos data-linenos="1307 "></span>        <span class=n>normalized_tags</span> <span class=o>=</span> <span class=p>[]</span>
+<span class=linenos data-linenos="1308 "></span>
+<span class=linenos data-linenos="1309 "></span>        <span class=k>if</span> <span class=n>device_name</span><span class=p>:</span>
+<span class=linenos data-linenos="1310 "></span>            <span class=bp>self</span><span class=o>.</span><span class=n>_log_deprecation</span><span class=p>(</span><span class=s1>&#39;device_name&#39;</span><span class=p>)</span>
+<span class=linenos data-linenos="1311 "></span>            <span class=k>try</span><span class=p>:</span>
+<span class=linenos data-linenos="1312 "></span>                <span class=n>normalized_tags</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=s1>&#39;device:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=n>to_native_string</span><span class=p>(</span><span class=n>device_name</span><span class=p>)))</span>
+<span class=linenos data-linenos="1313 "></span>            <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
+<span class=linenos data-linenos="1314 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span>
+<span class=linenos data-linenos="1315 "></span>                    <span class=s1>&#39;Encoding error with device name `</span><span class=si>%r</span><span class=s1>` for metric `</span><span class=si>%r</span><span class=s1>`, ignoring tag&#39;</span><span class=p>,</span> <span class=n>device_name</span><span class=p>,</span> <span class=n>metric_name</span>
+<span class=linenos data-linenos="1316 "></span>                <span class=p>)</span>
+<span class=linenos data-linenos="1317 "></span>
+<span class=linenos data-linenos="1318 "></span>        <span class=k>for</span> <span class=n>tag</span> <span class=ow>in</span> <span class=n>tags</span><span class=p>:</span>
+<span class=linenos data-linenos="1319 "></span>            <span class=k>if</span> <span class=n>tag</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
+<span class=linenos data-linenos="1320 "></span>                <span class=k>continue</span>
+<span class=linenos data-linenos="1321 "></span>            <span class=k>try</span><span class=p>:</span>
+<span class=linenos data-linenos="1322 "></span>                <span class=n>tag</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>tag</span><span class=p>)</span>
+<span class=linenos data-linenos="1323 "></span>            <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
+<span class=linenos data-linenos="1324 "></span>                <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=s1>&#39;Encoding error with tag `</span><span class=si>%s</span><span class=s1>` for metric `</span><span class=si>%s</span><span class=s1>`, ignoring tag&#39;</span><span class=p>,</span> <span class=n>tag</span><span class=p>,</span> <span class=n>metric_name</span><span class=p>)</span>
+<span class=linenos data-linenos="1325 "></span>                <span class=k>continue</span>
+<span class=linenos data-linenos="1326 "></span>            <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>disable_generic_tags</span><span class=p>:</span>
+<span class=linenos data-linenos="1327 "></span>                <span class=n>normalized_tags</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>degeneralise_tag</span><span class=p>(</span><span class=n>tag</span><span class=p>))</span>
+<span class=linenos data-linenos="1328 "></span>            <span class=k>else</span><span class=p>:</span>
+<span class=linenos data-linenos="1329 "></span>                <span class=n>normalized_tags</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>tag</span><span class=p>)</span>
+<span class=linenos data-linenos="1330 "></span>        <span class=k>return</span> <span class=n>normalized_tags</span>
+<span class=linenos data-linenos="1331 "></span>
+<span class=linenos data-linenos="1332 "></span>    <span class=k>def</span> <span class=nf>degeneralise_tag</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>tag</span><span class=p>):</span>
+<span class=linenos data-linenos="1333 "></span>        <span class=n>split_tag</span> <span class=o>=</span> <span class=n>tag</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>)</span>
+<span class=linenos data-linenos="1334 "></span>        <span class=k>if</span> <span class=nb>len</span><span class=p>(</span><span class=n>split_tag</span><span class=p>)</span> <span class=o>&gt;</span> <span class=mi>1</span><span class=p>:</span>
+<span class=linenos data-linenos="1335 "></span>            <span class=n>tag_name</span><span class=p>,</span> <span class=n>value</span> <span class=o>=</span> <span class=n>split_tag</span>
+<span class=linenos data-linenos="1336 "></span>        <span class=k>else</span><span class=p>:</span>
+<span class=linenos data-linenos="1337 "></span>            <span class=n>tag_name</span> <span class=o>=</span> <span class=n>tag</span>
+<span class=linenos data-linenos="1338 "></span>            <span class=n>value</span> <span class=o>=</span> <span class=kc>None</span>
+<span class=linenos data-linenos="1339 "></span>
+<span class=linenos data-linenos="1340 "></span>        <span class=k>if</span> <span class=n>tag_name</span> <span class=ow>in</span> <span class=n>GENERIC_TAGS</span><span class=p>:</span>
+<span class=linenos data-linenos="1341 "></span>            <span class=n>new_name</span> <span class=o>=</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>_</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>tag_name</span><span class=p>)</span>
+<span class=linenos data-linenos="1342 "></span>            <span class=k>if</span> <span class=n>value</span><span class=p>:</span>
+<span class=linenos data-linenos="1343 "></span>                <span class=k>return</span> <span class=s1>&#39;</span><span class=si>{}</span><span class=s1>:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=n>new_name</span><span class=p>,</span> <span class=n>value</span><span class=p>)</span>
+<span class=linenos data-linenos="1344 "></span>            <span class=k>else</span><span class=p>:</span>
+<span class=linenos data-linenos="1345 "></span>                <span class=k>return</span> <span class=n>new_name</span>
+<span class=linenos data-linenos="1346 "></span>        <span class=k>else</span><span class=p>:</span>
+<span class=linenos data-linenos="1347 "></span>            <span class=k>return</span> <span class=n>tag</span>
+<span class=linenos data-linenos="1348 "></span>
+<span class=linenos data-linenos="1349 "></span>    <span class=k>def</span> <span class=nf>get_debug_metric_tags</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+<span class=linenos data-linenos="1350 "></span>        <span class=n>tags</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;check_name:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>),</span> <span class=s1>&#39;check_version:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>check_version</span><span class=p>)]</span>
+<span class=linenos data-linenos="1351 "></span>        <span class=n>tags</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;tags&#39;</span><span class=p>,</span> <span class=p>[]))</span>
+<span class=linenos data-linenos="1352 "></span>        <span class=k>return</span> <span class=n>tags</span>
+<span class=linenos data-linenos="1353 "></span>
+<span class=linenos data-linenos="1354 "></span>    <span class=k>def</span> <span class=nf>get_memory_profile_tags</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+<span class=linenos data-linenos="1355 "></span>        <span class=c1># type: () -&gt; List[str]</span>
+<span class=linenos data-linenos="1356 "></span>        <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_debug_metric_tags</span><span class=p>()</span>
+<span class=linenos data-linenos="1357 "></span>        <span class=n>tags</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;__memory_profiling_tags&#39;</span><span class=p>,</span> <span class=p>[]))</span>
+<span class=linenos data-linenos="1358 "></span>        <span class=k>return</span> <span class=n>tags</span>
 <span class=linenos data-linenos="1359 "></span>
-<span class=linenos data-linenos="1360 "></span>    <span class=k>def</span> <span class=nf>get_debug_metric_tags</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
-<span class=linenos data-linenos="1361 "></span>        <span class=n>tags</span> <span class=o>=</span> <span class=p>[</span><span class=s1>&#39;check_name:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>),</span> <span class=s1>&#39;check_version:</span><span class=si>{}</span><span class=s1>&#39;</span><span class=o>.</span><span class=n>format</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>check_version</span><span class=p>)]</span>
-<span class=linenos data-linenos="1362 "></span>        <span class=n>tags</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=bp>self</span><span class=o>.</span><span class=n>instance</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;tags&#39;</span><span class=p>,</span> <span class=p>[]))</span>
-<span class=linenos data-linenos="1363 "></span>        <span class=k>return</span> <span class=n>tags</span>
+<span class=linenos data-linenos="1360 "></span>    <span class=k>def</span> <span class=nf>should_profile_memory</span><span class=p>(</span><span class=bp>self</span><span class=p>):</span>
+<span class=linenos data-linenos="1361 "></span>        <span class=c1># type: () -&gt; bool</span>
+<span class=linenos data-linenos="1362 "></span>        <span class=k>return</span> <span class=s1>&#39;profile_memory&#39;</span> <span class=ow>in</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span> <span class=ow>or</span> <span class=p>(</span>
+<span class=linenos data-linenos="1363 "></span>            <span class=n>datadog_agent</span><span class=o>.</span><span class=n>tracemalloc_enabled</span><span class=p>()</span> <span class=ow>and</span> <span class=n>should_profile_memory</span><span class=p>(</span><span class=n>datadog_agent</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>name</span><span class=p>)</span>
+<span class=linenos data-linenos="1364 "></span>        <span class=p>)</span>
+<span class=linenos data-linenos="1365 "></span>
+<span class=linenos data-linenos="1366 "></span>    <span class=k>def</span> <span class=nf>profile_memory</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>func</span><span class=p>,</span> <span class=n>namespaces</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>args</span><span class=o>=</span><span class=p>(),</span> <span class=n>kwargs</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>extra_tags</span><span class=o>=</span><span class=kc>None</span><span class=p>):</span>
+<span class=linenos data-linenos="1367 "></span>        <span class=c1># type: (Callable[..., Any], Optional[Sequence[str]], Sequence[Any], Optional[Dict[str, Any]], Optional[List[str]]) -&gt; None  # noqa: E501</span>
+<span class=linenos data-linenos="1368 "></span>        <span class=kn>from</span> <span class=nn>..utils.agent.memory</span> <span class=kn>import</span> <span class=n>profile_memory</span>
+<span class=linenos data-linenos="1369 "></span>
+<span class=linenos data-linenos="1370 "></span>        <span class=k>if</span> <span class=n>namespaces</span> <span class=ow>is</span> <span class=kc>None</span><span class=p>:</span>
+<span class=linenos data-linenos="1371 "></span>            <span class=n>namespaces</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=o>.</span><span class=n>split</span><span class=p>(</span><span class=s1>&#39;:&#39;</span><span class=p>,</span> <span class=mi>1</span><span class=p>)</span>
+<span class=linenos data-linenos="1372 "></span>
+<span class=linenos data-linenos="1373 "></span>        <span class=n>tags</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>get_memory_profile_tags</span><span class=p>()</span>
+<span class=linenos data-linenos="1374 "></span>        <span class=k>if</span> <span class=n>extra_tags</span> <span class=ow>is</span> <span class=ow>not</span> <span class=kc>None</span><span class=p>:</span>
+<span class=linenos data-linenos="1375 "></span>            <span class=n>tags</span><span class=o>.</span><span class=n>extend</span><span class=p>(</span><span class=n>extra_tags</span><span class=p>)</span>
+<span class=linenos data-linenos="1376 "></span>
+<span class=linenos data-linenos="1377 "></span>        <span class=n>metrics</span> <span class=o>=</span> <span class=n>profile_memory</span><span class=p>(</span><span class=n>func</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>init_config</span><span class=p>,</span> <span class=n>namespaces</span><span class=o>=</span><span class=n>namespaces</span><span class=p>,</span> <span class=n>args</span><span class=o>=</span><span class=n>args</span><span class=p>,</span> <span class=n>kwargs</span><span class=o>=</span><span class=n>kwargs</span><span class=p>)</span>
+<span class=linenos data-linenos="1378 "></span>
+<span class=linenos data-linenos="1379 "></span>        <span class=k>for</span> <span class=n>m</span> <span class=ow>in</span> <span class=n>metrics</span><span class=p>:</span>
+<span class=linenos data-linenos="1380 "></span>            <span class=bp>self</span><span class=o>.</span><span class=n>gauge</span><span class=p>(</span><span class=n>m</span><span class=o>.</span><span class=n>name</span><span class=p>,</span> <span class=n>m</span><span class=o>.</span><span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=n>tags</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
 </code></pre></div> </details> <div class="doc doc-children"> <div class="doc doc-object doc-function"> <h4 id=datadog_checks.base.checks.base.AgentCheck.gauge class="doc doc-heading"> <code class="highlight language-python"><span class=n>gauge</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=n>tags</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>hostname</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>device_name</span><span class=o>=</span><span class=kc>None</span><span class=p>,</span> <span class=n>raw</span><span class=o>=</span><span class=kc>False</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.base.AgentCheck.gauge class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Sample a gauge metric.</p> <p>Parameters:</p> <div class=highlight><pre><span></span><code>name (str):
     the name of the metric
 value (float):
@@ -1544,57 +1561,57 @@ raw (bool):
 <span class=p>}</span>
 </code></pre></div> <p>Parameters:</p> <div class=highlight><pre><span></span><code>event (dict[str, Any]):
     the event to be sent
-</code></pre></div> <details class=quote> <summary>Source code in <code>datadog_checks_base/datadog_checks/base/checks/base.py</code></summary> <div class=highlight><pre><span></span><code><span class=linenos data-linenos="1258 "></span><span class=k>def</span> <span class=nf>event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>event</span><span class=p>):</span>
-<span class=linenos data-linenos="1259 "></span>    <span class=c1># type: (Event) -&gt; None</span>
-<span class=linenos data-linenos="1260 "></span><span class=w>    </span><span class=sd>&quot;&quot;&quot;Send an event.</span>
-<span class=linenos data-linenos="1261 "></span>
-<span class=linenos data-linenos="1262 "></span><span class=sd>    An event is a dictionary with the following keys and data types:</span>
-<span class=linenos data-linenos="1263 "></span>
-<span class=linenos data-linenos="1264 "></span><span class=sd>    ```python</span>
-<span class=linenos data-linenos="1265 "></span><span class=sd>    {</span>
-<span class=linenos data-linenos="1266 "></span><span class=sd>        &quot;timestamp&quot;: int,        # the epoch timestamp for the event</span>
-<span class=linenos data-linenos="1267 "></span><span class=sd>        &quot;event_type&quot;: str,       # the event name</span>
-<span class=linenos data-linenos="1268 "></span><span class=sd>        &quot;api_key&quot;: str,          # the api key for your account</span>
-<span class=linenos data-linenos="1269 "></span><span class=sd>        &quot;msg_title&quot;: str,        # the title of the event</span>
-<span class=linenos data-linenos="1270 "></span><span class=sd>        &quot;msg_text&quot;: str,         # the text body of the event</span>
-<span class=linenos data-linenos="1271 "></span><span class=sd>        &quot;aggregation_key&quot;: str,  # a key to use for aggregating events</span>
-<span class=linenos data-linenos="1272 "></span><span class=sd>        &quot;alert_type&quot;: str,       # (optional) one of (&#39;error&#39;, &#39;warning&#39;, &#39;success&#39;, &#39;info&#39;), defaults to &#39;info&#39;</span>
-<span class=linenos data-linenos="1273 "></span><span class=sd>        &quot;source_type_name&quot;: str, # (optional) the source type name</span>
-<span class=linenos data-linenos="1274 "></span><span class=sd>        &quot;host&quot;: str,             # (optional) the name of the host</span>
-<span class=linenos data-linenos="1275 "></span><span class=sd>        &quot;tags&quot;: list,            # (optional) a list of tags to associate with this event</span>
-<span class=linenos data-linenos="1276 "></span><span class=sd>        &quot;priority&quot;: str,         # (optional) specifies the priority of the event (&quot;normal&quot; or &quot;low&quot;)</span>
-<span class=linenos data-linenos="1277 "></span><span class=sd>    }</span>
-<span class=linenos data-linenos="1278 "></span><span class=sd>    ```</span>
-<span class=linenos data-linenos="1279 "></span>
-<span class=linenos data-linenos="1280 "></span><span class=sd>    Parameters:</span>
-<span class=linenos data-linenos="1281 "></span>
-<span class=linenos data-linenos="1282 "></span><span class=sd>        event (dict[str, Any]):</span>
-<span class=linenos data-linenos="1283 "></span><span class=sd>            the event to be sent</span>
-<span class=linenos data-linenos="1284 "></span><span class=sd>    &quot;&quot;&quot;</span>
-<span class=linenos data-linenos="1285 "></span>    <span class=c1># Enforce types of some fields, considerably facilitates handling in go bindings downstream</span>
-<span class=linenos data-linenos="1286 "></span>    <span class=k>for</span> <span class=n>key</span><span class=p>,</span> <span class=n>value</span> <span class=ow>in</span> <span class=n>iteritems</span><span class=p>(</span><span class=n>event</span><span class=p>):</span>
-<span class=linenos data-linenos="1287 "></span>        <span class=k>if</span> <span class=ow>not</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>value</span><span class=p>,</span> <span class=p>(</span><span class=n>text_type</span><span class=p>,</span> <span class=n>binary_type</span><span class=p>)):</span>
-<span class=linenos data-linenos="1288 "></span>            <span class=k>continue</span>
-<span class=linenos data-linenos="1289 "></span>
-<span class=linenos data-linenos="1290 "></span>        <span class=k>try</span><span class=p>:</span>
-<span class=linenos data-linenos="1291 "></span>            <span class=n>event</span><span class=p>[</span><span class=n>key</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>value</span><span class=p>)</span>  <span class=c1># type: ignore</span>
-<span class=linenos data-linenos="1292 "></span>            <span class=c1># ^ Mypy complains about dynamic key assignment -- arguably for good reason.</span>
-<span class=linenos data-linenos="1293 "></span>            <span class=c1># Ideally we should convert this to a dict literal so that submitted events only include known keys.</span>
-<span class=linenos data-linenos="1294 "></span>        <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
-<span class=linenos data-linenos="1295 "></span>            <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=s1>&#39;Encoding error with field `</span><span class=si>%s</span><span class=s1>`, cannot submit event&#39;</span><span class=p>,</span> <span class=n>key</span><span class=p>)</span>
-<span class=linenos data-linenos="1296 "></span>            <span class=k>return</span>
-<span class=linenos data-linenos="1297 "></span>
-<span class=linenos data-linenos="1298 "></span>    <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;tags&#39;</span><span class=p>):</span>
-<span class=linenos data-linenos="1299 "></span>        <span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_normalize_tags_type</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>])</span>
-<span class=linenos data-linenos="1300 "></span>    <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;timestamp&#39;</span><span class=p>):</span>
-<span class=linenos data-linenos="1301 "></span>        <span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=nb>int</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>])</span>
-<span class=linenos data-linenos="1302 "></span>    <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>):</span>
-<span class=linenos data-linenos="1303 "></span>        <span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>])</span>
-<span class=linenos data-linenos="1304 "></span>
-<span class=linenos data-linenos="1305 "></span>    <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>:</span>
-<span class=linenos data-linenos="1306 "></span>        <span class=n>event</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=s1>&#39;source_type_name&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>)</span>
-<span class=linenos data-linenos="1307 "></span>
-<span class=linenos data-linenos="1308 "></span>    <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>event</span><span class=p>)</span>
+</code></pre></div> <details class=quote> <summary>Source code in <code>datadog_checks_base/datadog_checks/base/checks/base.py</code></summary> <div class=highlight><pre><span></span><code><span class=linenos data-linenos="1247 "></span><span class=k>def</span> <span class=nf>event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=n>event</span><span class=p>):</span>
+<span class=linenos data-linenos="1248 "></span>    <span class=c1># type: (Event) -&gt; None</span>
+<span class=linenos data-linenos="1249 "></span><span class=w>    </span><span class=sd>&quot;&quot;&quot;Send an event.</span>
+<span class=linenos data-linenos="1250 "></span>
+<span class=linenos data-linenos="1251 "></span><span class=sd>    An event is a dictionary with the following keys and data types:</span>
+<span class=linenos data-linenos="1252 "></span>
+<span class=linenos data-linenos="1253 "></span><span class=sd>    ```python</span>
+<span class=linenos data-linenos="1254 "></span><span class=sd>    {</span>
+<span class=linenos data-linenos="1255 "></span><span class=sd>        &quot;timestamp&quot;: int,        # the epoch timestamp for the event</span>
+<span class=linenos data-linenos="1256 "></span><span class=sd>        &quot;event_type&quot;: str,       # the event name</span>
+<span class=linenos data-linenos="1257 "></span><span class=sd>        &quot;api_key&quot;: str,          # the api key for your account</span>
+<span class=linenos data-linenos="1258 "></span><span class=sd>        &quot;msg_title&quot;: str,        # the title of the event</span>
+<span class=linenos data-linenos="1259 "></span><span class=sd>        &quot;msg_text&quot;: str,         # the text body of the event</span>
+<span class=linenos data-linenos="1260 "></span><span class=sd>        &quot;aggregation_key&quot;: str,  # a key to use for aggregating events</span>
+<span class=linenos data-linenos="1261 "></span><span class=sd>        &quot;alert_type&quot;: str,       # (optional) one of (&#39;error&#39;, &#39;warning&#39;, &#39;success&#39;, &#39;info&#39;), defaults to &#39;info&#39;</span>
+<span class=linenos data-linenos="1262 "></span><span class=sd>        &quot;source_type_name&quot;: str, # (optional) the source type name</span>
+<span class=linenos data-linenos="1263 "></span><span class=sd>        &quot;host&quot;: str,             # (optional) the name of the host</span>
+<span class=linenos data-linenos="1264 "></span><span class=sd>        &quot;tags&quot;: list,            # (optional) a list of tags to associate with this event</span>
+<span class=linenos data-linenos="1265 "></span><span class=sd>        &quot;priority&quot;: str,         # (optional) specifies the priority of the event (&quot;normal&quot; or &quot;low&quot;)</span>
+<span class=linenos data-linenos="1266 "></span><span class=sd>    }</span>
+<span class=linenos data-linenos="1267 "></span><span class=sd>    ```</span>
+<span class=linenos data-linenos="1268 "></span>
+<span class=linenos data-linenos="1269 "></span><span class=sd>    Parameters:</span>
+<span class=linenos data-linenos="1270 "></span>
+<span class=linenos data-linenos="1271 "></span><span class=sd>        event (dict[str, Any]):</span>
+<span class=linenos data-linenos="1272 "></span><span class=sd>            the event to be sent</span>
+<span class=linenos data-linenos="1273 "></span><span class=sd>    &quot;&quot;&quot;</span>
+<span class=linenos data-linenos="1274 "></span>    <span class=c1># Enforce types of some fields, considerably facilitates handling in go bindings downstream</span>
+<span class=linenos data-linenos="1275 "></span>    <span class=k>for</span> <span class=n>key</span><span class=p>,</span> <span class=n>value</span> <span class=ow>in</span> <span class=n>iteritems</span><span class=p>(</span><span class=n>event</span><span class=p>):</span>
+<span class=linenos data-linenos="1276 "></span>        <span class=k>if</span> <span class=ow>not</span> <span class=nb>isinstance</span><span class=p>(</span><span class=n>value</span><span class=p>,</span> <span class=p>(</span><span class=n>text_type</span><span class=p>,</span> <span class=n>binary_type</span><span class=p>)):</span>
+<span class=linenos data-linenos="1277 "></span>            <span class=k>continue</span>
+<span class=linenos data-linenos="1278 "></span>
+<span class=linenos data-linenos="1279 "></span>        <span class=k>try</span><span class=p>:</span>
+<span class=linenos data-linenos="1280 "></span>            <span class=n>event</span><span class=p>[</span><span class=n>key</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>value</span><span class=p>)</span>  <span class=c1># type: ignore</span>
+<span class=linenos data-linenos="1281 "></span>            <span class=c1># ^ Mypy complains about dynamic key assignment -- arguably for good reason.</span>
+<span class=linenos data-linenos="1282 "></span>            <span class=c1># Ideally we should convert this to a dict literal so that submitted events only include known keys.</span>
+<span class=linenos data-linenos="1283 "></span>        <span class=k>except</span> <span class=ne>UnicodeError</span><span class=p>:</span>
+<span class=linenos data-linenos="1284 "></span>            <span class=bp>self</span><span class=o>.</span><span class=n>log</span><span class=o>.</span><span class=n>warning</span><span class=p>(</span><span class=s1>&#39;Encoding error with field `</span><span class=si>%s</span><span class=s1>`, cannot submit event&#39;</span><span class=p>,</span> <span class=n>key</span><span class=p>)</span>
+<span class=linenos data-linenos="1285 "></span>            <span class=k>return</span>
+<span class=linenos data-linenos="1286 "></span>
+<span class=linenos data-linenos="1287 "></span>    <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;tags&#39;</span><span class=p>):</span>
+<span class=linenos data-linenos="1288 "></span>        <span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=bp>self</span><span class=o>.</span><span class=n>_normalize_tags_type</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;tags&#39;</span><span class=p>])</span>
+<span class=linenos data-linenos="1289 "></span>    <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;timestamp&#39;</span><span class=p>):</span>
+<span class=linenos data-linenos="1290 "></span>        <span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=nb>int</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;timestamp&#39;</span><span class=p>])</span>
+<span class=linenos data-linenos="1291 "></span>    <span class=k>if</span> <span class=n>event</span><span class=o>.</span><span class=n>get</span><span class=p>(</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>):</span>
+<span class=linenos data-linenos="1292 "></span>        <span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>]</span> <span class=o>=</span> <span class=n>to_native_string</span><span class=p>(</span><span class=n>event</span><span class=p>[</span><span class=s1>&#39;aggregation_key&#39;</span><span class=p>])</span>
+<span class=linenos data-linenos="1293 "></span>
+<span class=linenos data-linenos="1294 "></span>    <span class=k>if</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>:</span>
+<span class=linenos data-linenos="1295 "></span>        <span class=n>event</span><span class=o>.</span><span class=n>setdefault</span><span class=p>(</span><span class=s1>&#39;source_type_name&#39;</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>__NAMESPACE__</span><span class=p>)</span>
+<span class=linenos data-linenos="1296 "></span>
+<span class=linenos data-linenos="1297 "></span>    <span class=n>aggregator</span><span class=o>.</span><span class=n>submit_event</span><span class=p>(</span><span class=bp>self</span><span class=p>,</span> <span class=bp>self</span><span class=o>.</span><span class=n>check_id</span><span class=p>,</span> <span class=n>event</span><span class=p>)</span>
 </code></pre></div> </details> </div> </div> <div class="doc doc-object doc-function"> <h4 id=datadog_checks.base.checks.base.AgentCheck.set_metadata class="doc doc-heading"> <code class="highlight language-python"><span class=n>set_metadata</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>value</span><span class=p>,</span> <span class=o>**</span><span class=n>options</span><span class=p>)</span></code> <a href=#datadog_checks.base.checks.base.AgentCheck.set_metadata class=headerlink title="Permanent link">&para;</a></h4> <div class="doc doc-contents "> <p>Updates the cached metadata <code>name</code> with <code>value</code>, which is then sent by the Agent at regular intervals.</p> <p>Parameters:</p> <div class=highlight><pre><span></span><code>name (str):
     the name of the metadata
 value (Any):
