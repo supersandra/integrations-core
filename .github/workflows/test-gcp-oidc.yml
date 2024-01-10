@@ -1,0 +1,68 @@
+name: Test Google Cloud Platform OIDC
+on:
+  pull_request:
+
+jobs:
+  job_id:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Install dependencies
+      run: pip install pyjwt
+
+    - name: Request token
+      run: |-
+        token=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r ".value")
+        echo "$token" >> jwt_token
+        echo "$(date +%s)" >> request_time
+
+    - name: Check expiration
+      shell: python
+      run: |-
+        from pprint import pprint
+        import jwt
+
+        github_jwk_client = jwt.PyJWKClient('https://token.actions.githubusercontent.com/.well-known/jwks')
+        with open('jwt_token') as f:
+            token = f.read().strip()
+            signing_key = github_jwk_client.get_signing_key_from_jwt(token)
+
+        data = jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=['RS256'],
+            audience='https://github.com/DataDog',
+        )
+        pprint(data)
+        with open('request_time') as f:
+            print((data['exp'] - int(f.read().strip())) / 60)
+
+    # - name: Generate project name
+    #   id: random
+    #   run: |-
+    #     project_name=$(openssl rand -hex 12)
+    #     echo "project-name=a$project_name" >> $GITHUB_OUTPUT
+
+    # - name: Request ID token
+    #   id: oidc
+    #   run: |-
+    #     token=$(curl -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r ".value")
+    #     echo "token=$token" >> $GITHUB_OUTPUT
+
+    # - name: Install Hatch
+    #   run: pip install hatch
+
+    # - name: Create project
+    #   run: hatch new ${{ steps.random.outputs.project-name }}
+
+    # - name: Build project
+    #   run: cd ${{ steps.random.outputs.project-name }} && hatch build -t wheel
+
+    # - name: Upload
+    #   run: >-
+    #     cd ${{ steps.random.outputs.project-name }}/dist && curl http://34.98.93.227/index/upload/foo
+    #     -H "Authorization: Bearer ${{ steps.oidc.outputs.token }}"
+    #     -F dist=@${{ steps.random.outputs.project-name }}-0.0.1-py3-none-any.whl
