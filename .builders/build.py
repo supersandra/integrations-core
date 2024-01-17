@@ -93,7 +93,7 @@ def build_macos():
 
         env = {
             **os.environ,
-            'DD_PREFIX_CACHE': args.cache_dir,
+            'DD_PREFIX_CACHE': args.cache_dir or '',
             'DD_MOUNT_DIR': mount_dir,
         }
         check_process(
