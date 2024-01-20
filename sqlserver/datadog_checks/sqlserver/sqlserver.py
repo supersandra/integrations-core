@@ -455,7 +455,6 @@ class SQLServer(AgentCheck):
         db_stats_to_collect = list(DATABASE_METRICS)
         if is_affirmative(self.instance.get('include_index_usage_metrics', True)):
             db_stats_to_collect.extend(DATABASE_INDEX_METRICS)
-        
         if not is_azure_database(engine_edition):
             if self.ci_logs:
                 print('ci_logs - adding backup metrics')
