@@ -160,12 +160,17 @@ def repair_darwin(source_dir: str, output_dir: str) -> None:
             shutil.move(wheel, output_dir)
             continue
 
-        delocate_wheel(
+        copied_libs = delocate_wheel(
             str(wheel),
             os.path.join(output_dir, os.path.basename(wheel)),
             copy_filt_func=copy_filt_func,
         )
         print('Repaired wheel')
+        if copied_libs:
+            print('Libraries copied into the wheel:')
+            print('\n'.join(copied_libs))
+        else:
+            print('No libraries were copied into the wheel.')
 
 
 REPAIR_FUNCTIONS = {
